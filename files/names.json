@@ -9,7 +9,7 @@
     "date": "2026-10-21"
   },
   "crohns_diagnosis_form.pyw": {
-    "title": "Crohn Evaluation Diagnosis",
+    "title": "Crohn Diagnosis",
     "description": "Estimation for the possibility of the existence of crohn disease.",
     "topic": "crohn",
     "version": "1.0",
