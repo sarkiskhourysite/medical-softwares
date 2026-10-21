@@ -1,19 +1,18 @@
 {
-  "example-bmi-calculator.py": {
-    "title": "BMI Calculator",
-    "description": "Simple command-line script that calculates body mass index from weight and height.",
-    "topic": "Calculators",
+  "crohn_scores_calculators.pyw": {
+    "title": "crohn's Calculators",
+    "description": "Multiple score calculators crohn's disease.",
+    "topic": "crohn",
     "version": "1.0",
-    "platform": "Windows, macOS, Linux (Python 3)",
+    "platform": "Windows,Python3.12",
     "author": "Dr. Name",
     "date": "2026-10-21"
   },
   "example-patient-tracker.exe": {
-    "title": "Patient Tracker",
-    "description": "Desktop program to keep a simple local list of follow-up appointments.",
-    "topic": "Practice management",
-    "version": "2.3",
-    "platform": "Windows"
-  },
-  "example-quick-notes.py": "Quick Notes"
+    "title": "Crohn Evaluation Diagnoss",
+    "description": "Estimation for the possibility of the existence of crohn disease.",
+    "topic": "crohn",
+    "version": "1.0",
+    "platform": "Windows,Python3.12"
+  }
 }
