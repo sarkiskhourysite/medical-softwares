@@ -1,5 +1,5 @@
 {
-  "crohn_scores_calculators.pyw": {
+  "crohns_scores_calculators.pyw": {
     "title": "crohn's Calculators",
     "description": "Multiple score calculators crohn's disease.",
     "topic": "crohn",
@@ -8,8 +8,8 @@
     "author": "Dr. Name",
     "date": "2026-10-21"
   },
-  "example-patient-tracker.exe": {
-    "title": "Crohn Evaluation Diagnoss",
+  "crohns_diagnosis_form.pyw": {
+    "title": "Crohn Evaluation Diagnosis",
     "description": "Estimation for the possibility of the existence of crohn disease.",
     "topic": "crohn",
     "version": "1.0",
