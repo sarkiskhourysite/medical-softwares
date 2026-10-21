@@ -1,0 +1,19 @@
+{
+  "example-bmi-calculator.py": {
+    "title": "BMI Calculator",
+    "description": "Simple command-line script that calculates body mass index from weight and height.",
+    "topic": "Calculators",
+    "version": "1.0",
+    "platform": "Windows, macOS, Linux (Python 3)",
+    "author": "Dr. Name",
+    "date": "2026-10-21"
+  },
+  "example-patient-tracker.exe": {
+    "title": "Patient Tracker",
+    "description": "Desktop program to keep a simple local list of follow-up appointments.",
+    "topic": "Practice management",
+    "version": "2.3",
+    "platform": "Windows"
+  },
+  "example-quick-notes.py": "Quick Notes"
+}
