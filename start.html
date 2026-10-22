@@ -203,6 +203,7 @@
           <option value="scripts">Scripts</option>
           <option value="programs">Programs</option>
           <option value="docs">Documents</option>
+          <option value="images">Images</option>
           <option value="other">Other</option>
         </select>
         <select id="sortBy" aria-label="Sort order">
@@ -232,8 +233,8 @@
     // ---- Settings ----
     // The user name and repository are detected automatically from the page address
     // (https://USER.github.io/REPO/). Fill them in only if the page is on a custom domain.
-    const USER   = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "sarkiskhourysite";
-    const REPO   = location.hostname.endsWith(".github.io") ? location.pathname.split("/")[1] : "medical-softwares";
+    const USER   = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "YOUR-USERNAME";
+    const REPO   = location.hostname.endsWith(".github.io") ? location.pathname.split("/")[1] : "YOUR-REPO";
     const FOLDER = "files";          // folder that holds the files to download
     const NO_TOPIC = "General";      // topic shown for files that have no topic in names.json
     // ------------------
@@ -248,7 +249,8 @@
     const topicsLabel = document.getElementById("topicsLabel");
 
     const COLORS = {
-      py: "#3776ab", ipynb: "#e0702a", r: "#276dc3", js: "#b8860b",
+      py: "#3776ab", pyw: "#3776ab", ipynb: "#e0702a",
+      jpg: "#0e8a8a", jpeg: "#0e8a8a", png: "#0e8a8a", gif: "#0e8a8a", webp: "#0e8a8a", svg: "#0e8a8a", r: "#276dc3", js: "#b8860b",
       ps1: "#2b5fa8", bat: "#4f6272", sh: "#2a8a57",
       exe: "#34495e", msi: "#34495e", dmg: "#5f6b7a", pkg: "#5f6b7a", apk: "#2a9d6a", jar: "#b0452a",
       pdf: "#c2413f", doc: "#2a64c5", docx: "#2a64c5", txt: "#5f7280", md: "#5f7280",
@@ -258,11 +260,13 @@
     const SCRIPTS  = ["py", "pyw", "ipynb", "r", "js", "ps1", "bat", "sh", "m"];
     const PROGRAMS = ["exe", "msi", "dmg", "pkg", "apk", "jar", "appimage", "deb"];
     const DOCS     = ["pdf", "doc", "docx", "txt", "md", "odt", "xls", "xlsx", "csv"];
+    const IMAGES   = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
 
     function typeOf(ext) {
       if (SCRIPTS.includes(ext))  return "scripts";
       if (PROGRAMS.includes(ext)) return "programs";
       if (DOCS.includes(ext))     return "docs";
+      if (IMAGES.includes(ext))   return "images";
       return "other";
     }
     function formatSize(bytes) {
