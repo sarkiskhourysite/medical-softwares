@@ -186,9 +186,20 @@
     }
     .lb-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; font-weight: 600; }
     .lb-head button { font-size: 26px; line-height: 1; border: 0; background: none; color: var(--muted); cursor: pointer; }
-    .lb-body { padding: 0 16px; overflow: auto; display: flex; justify-content: center; background: var(--bg); }
-    .lb-body img { max-width: 100%; max-height: 70vh; object-fit: contain; display: block; margin: 12px 0; }
-    .lb-foot { padding: 12px 16px; text-align: right; }
+    .lb-body { padding: 0 16px; overflow: auto; display: flex; max-height: 72vh; background: var(--bg); }
+    .lb-body img { max-width: 100%; max-height: 68vh; object-fit: contain; display: block; margin: 12px auto; cursor: zoom-in; user-select: none; -webkit-user-drag: none; }
+    .lb-body.zoomed img { flex: none; max-width: none; max-height: none; cursor: grab; }
+    .lb-body.dragging img { cursor: grabbing; }
+    .lb-foot { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .zoom { display: flex; align-items: center; gap: 6px; }
+    .zoom button {
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      font-size: 18px; line-height: 1; cursor: pointer;
+    }
+    .zoom button:hover { border-color: var(--teal); color: var(--teal-dark); }
+    .zoom .reset { width: auto; padding: 0 10px; font-size: 13px; }
+    .zoom .level { min-width: 48px; text-align: center; font-size: 13px; color: var(--muted); }
     .lb-btn {
       display: inline-block; padding: 9px 18px; border-radius: 999px;
       background: var(--teal); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px;
@@ -235,18 +246,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
           <input id="search" type="search" placeholder="Search by name, topic, author..." aria-label="Search software" autocomplete="off">
         </label>
-        <select id="typeFilter" aria-label="Filter by file type">
-          <option value="all">All file types</option>
-          <option value="scripts">Scripts</option>
-          <option value="programs">Programs</option>
-          <option value="docs">Documents</option>
-          <option value="images">Images</option>
-          <option value="other">Other</option>
-        </select>
-        <select id="sortBy" aria-label="Sort order">
-          <option value="az">Sort: A–Z</option>
-          <option value="new">Sort: Newest first</option>
-        </select>
       </div>
 
       <div class="topics-label" id="topicsLabel" hidden>Topics</div>
@@ -270,7 +269,15 @@
     <div class="lb-card">
       <div class="lb-head"><span id="lbTitle"></span><button id="lbClose" aria-label="Close preview">&times;</button></div>
       <div class="lb-body"><img id="lbImg" alt=""></div>
-      <div class="lb-foot"><a id="lbDownload" class="lb-btn" download>Download</a></div>
+      <div class="lb-foot">
+        <div class="zoom" title="Scroll the mouse wheel or double-click the image to zoom">
+          <button id="zoomOut" aria-label="Zoom out">&minus;</button>
+          <span class="level" id="lbLevel">100%</span>
+          <button id="zoomIn" aria-label="Zoom in">+</button>
+          <button id="zoomReset" class="reset" aria-label="Reset zoom">Reset</button>
+        </div>
+        <a id="lbDownload" class="lb-btn" download>Download</a>
+      </div>
     </div>
   </div>
 
@@ -289,11 +296,10 @@
     const count      = document.getElementById("count");
     const search     = document.getElementById("search");
     const chips      = document.getElementById("chips");
-    const typeFilter = document.getElementById("typeFilter");
-    const sortBy     = document.getElementById("sortBy");
     const topicsLabel = document.getElementById("topicsLabel");
 
     const COLORS = {
+      html: "#d9622b", htm: "#d9622b",
       py: "#3776ab", pyw: "#3776ab", ipynb: "#e0702a",
       jpg: "#0e8a8a", jpeg: "#0e8a8a", png: "#0e8a8a", gif: "#0e8a8a", webp: "#0e8a8a", svg: "#0e8a8a", r: "#276dc3", js: "#b8860b",
       ps1: "#2b5fa8", bat: "#4f6272", sh: "#2a8a57",
@@ -306,8 +312,10 @@
     const PROGRAMS = ["exe", "msi", "dmg", "pkg", "apk", "jar", "appimage", "deb"];
     const DOCS     = ["pdf", "doc", "docx", "txt", "md", "odt", "xls", "xlsx", "csv"];
     const IMAGES   = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
+    const PAGES    = ["html", "htm"];   // opened in a new tab instead of downloaded
 
     function typeOf(ext) {
+      if (PAGES.includes(ext))    return "pages";
       if (SCRIPTS.includes(ext))  return "scripts";
       if (PROGRAMS.includes(ext)) return "programs";
       if (DOCS.includes(ext))     return "docs";
@@ -363,21 +371,15 @@
 
     function render() {
       const q = search.value.trim().toLowerCase();
-      const type = typeFilter.value;
 
       let shown = files.filter(f =>
         (activeTopic === "all" || f.topic === activeTopic) &&
-        (type === "all" || f.type === type) &&
         [f.title, f.name, f.description, f.topic, f.author, f.platform, f.version].join(" ").toLowerCase().includes(q)
       );
 
-      shown.sort((a, b) => {
-        if (sortBy.value === "new") {
-          const da = a.date || "", db = b.date || "";
-          if (da !== db) return da < db ? 1 : -1;     // newest first, undated last
-        }
-        return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" });
-      });
+      // Always sorted A–Z by title
+      shown.sort((a, b) =>
+        a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }));
 
       list.innerHTML = "";
       shown.forEach(f => {
@@ -385,7 +387,12 @@
         const a = document.createElement("a");
         a.className = "file";
         a.href = `${FOLDER}/${encodeURIComponent(f.name)}`;
-        a.download = f.name;
+        if (f.type === "pages") {
+          a.target = "_blank";            // open the page in a new tab
+          a.rel = "noopener";
+        } else {
+          a.download = f.name;            // everything else is downloaded
+        }
         a.title = f.name;
 
         const badge = document.createElement("div");
@@ -445,6 +452,9 @@
         const dl = document.createElement("div");
         dl.className = "dl";
         dl.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg><span>Download</span>';
+        if (f.type === "pages") {
+          dl.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span>Open</span>';
+        }
 
         const actions = document.createElement("div");
         actions.className = "actions";
@@ -475,7 +485,7 @@
     ])
     .then(([items, info]) => {
       files = items
-        .filter(i => i.type === "file" && i.name !== "names.json")
+        .filter(i => i.type === "file" && i.name !== "names.json" && !(info[i.name] && info[i.name].hidden))
         .map(i => {
           const ext = (i.name.includes(".") ? i.name.split(".").pop() : "file").toLowerCase();
           // An entry in names.json can be a plain nickname (text) or an object with details
@@ -499,8 +509,6 @@
     .catch(() => { list.innerHTML = '<li class="message">Could not load the file list.</li>'; });
 
     search.addEventListener("input", render);
-    typeFilter.addEventListener("change", render);
-    sortBy.addEventListener("change", render);
     chips.addEventListener("click", e => {
       const btn = e.target.closest(".chip");
       if (!btn) return;
@@ -518,6 +526,7 @@
       const d = document.getElementById("lbDownload");
       d.href = url;
       d.download = f.name;
+      zoom = 1; baseW = 0; applyZoom();
       lightbox.hidden = false;
       document.body.style.overflow = "hidden";
     }
@@ -528,7 +537,65 @@
     }
     document.getElementById("lbClose").addEventListener("click", closePreview);
     lightbox.addEventListener("click", e => { if (e.target === lightbox) closePreview(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && !lightbox.hidden) closePreview(); });
+
+    // ---- Zoom inside the preview ----
+    const lbBody  = document.querySelector(".lb-body");
+    const lbImg   = document.getElementById("lbImg");
+    const lbLevel = document.getElementById("lbLevel");
+    let zoom = 1, baseW = 0;
+
+    function applyZoom() {
+      if (zoom === 1) { lbBody.classList.remove("zoomed"); lbImg.style.width = ""; }
+      else { lbBody.classList.add("zoomed"); lbImg.style.width = (baseW * zoom) + "px"; }
+      lbLevel.textContent = Math.round(zoom * 100) + "%";
+    }
+    // Zoom between 100% and 500%, keeping the point under the cursor in place
+    function setZoom(z, cx, cy) {
+      z = Math.min(5, Math.max(1, Math.round(z * 100) / 100));
+      if (z === zoom) return;
+      if (zoom === 1) baseW = lbImg.getBoundingClientRect().width;   // fitted width
+      if (!baseW) return;                                             // image not loaded yet
+      const rect = lbBody.getBoundingClientRect();
+      const ox = (cx === undefined ? rect.left + rect.width / 2 : cx) - rect.left;
+      const oy = (cy === undefined ? rect.top + rect.height / 2 : cy) - rect.top;
+      const px = lbBody.scrollLeft + ox, py = lbBody.scrollTop + oy;
+      const ratio = z / zoom;
+      zoom = z;
+      applyZoom();
+      lbBody.scrollLeft = px * ratio - ox;
+      lbBody.scrollTop  = py * ratio - oy;
+    }
+    document.getElementById("zoomIn").addEventListener("click", () => setZoom(zoom * 1.25));
+    document.getElementById("zoomOut").addEventListener("click", () => setZoom(zoom / 1.25));
+    document.getElementById("zoomReset").addEventListener("click", () => setZoom(1));
+    lbBody.addEventListener("wheel", e => {
+      e.preventDefault();
+      setZoom(zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2), e.clientX, e.clientY);
+    }, { passive: false });
+    lbImg.addEventListener("dblclick", e => setZoom(zoom > 1 ? 1 : 2.5, e.clientX, e.clientY));
+
+    // Drag to move around when zoomed in
+    let drag = null;
+    lbBody.addEventListener("mousedown", e => {
+      if (zoom === 1) return;
+      drag = { x: e.clientX, y: e.clientY, l: lbBody.scrollLeft, t: lbBody.scrollTop };
+      lbBody.classList.add("dragging");
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", e => {
+      if (!drag) return;
+      lbBody.scrollLeft = drag.l - (e.clientX - drag.x);
+      lbBody.scrollTop  = drag.t - (e.clientY - drag.y);
+    });
+    window.addEventListener("mouseup", () => { drag = null; lbBody.classList.remove("dragging"); });
+
+    document.addEventListener("keydown", e => {
+      if (lightbox.hidden) return;
+      if (e.key === "Escape") closePreview();
+      else if (e.key === "+" || e.key === "=") setZoom(zoom * 1.25);
+      else if (e.key === "-") setZoom(zoom / 1.25);
+      else if (e.key === "0") setZoom(1);
+    });
   </script>
 </body>
 </html>
