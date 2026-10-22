@@ -158,6 +158,43 @@
     a.file:hover .dl { background: var(--teal); color: #fff; }
     .message { text-align: center; color: var(--muted); padding: 36px 8px; }
 
+    /* ---------- Image preview ---------- */
+    .thumb {
+      flex: none; width: 46px; height: 46px; border-radius: 12px;
+      object-fit: cover; background: var(--bg);
+      border: 1px solid var(--border); cursor: zoom-in;
+    }
+    .actions { flex: none; display: flex; align-items: center; gap: 8px; }
+    .pv {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted);
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .pv:hover { border-color: var(--teal); color: var(--teal-dark); }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(5, 15, 22, .78);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .lightbox[hidden] { display: none; }
+    .lb-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; max-width: min(900px, 100%); max-height: 100%;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .lb-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; font-weight: 600; }
+    .lb-head button { font-size: 26px; line-height: 1; border: 0; background: none; color: var(--muted); cursor: pointer; }
+    .lb-body { padding: 0 16px; overflow: auto; display: flex; justify-content: center; background: var(--bg); }
+    .lb-body img { max-width: 100%; max-height: 70vh; object-fit: contain; display: block; margin: 12px 0; }
+    .lb-foot { padding: 12px 16px; text-align: right; }
+    .lb-btn {
+      display: inline-block; padding: 9px 18px; border-radius: 999px;
+      background: var(--teal); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px;
+    }
+    @media (prefers-color-scheme: dark) { .lb-btn { color: #06201f; } }
+
     /* ---------- Notices ---------- */
     .notice {
       margin-top: 18px; padding: 14px 16px;
@@ -172,7 +209,7 @@
     footer { text-align: center; color: var(--muted); font-size: 13px; padding: 18px 16px 36px; }
 
     @media (max-width: 560px) {
-      .dl span { display: none; } .dl { padding: 8px; }
+      .dl span, .pv span { display: none; } .dl, .pv { padding: 8px; }
       .toolbar select { flex: 1 1 140px; }
     }
   </style>
@@ -228,6 +265,14 @@
   </main>
 
   <footer>Files are downloaded directly from this site.</footer>
+
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Image preview">
+    <div class="lb-card">
+      <div class="lb-head"><span id="lbTitle"></span><button id="lbClose" aria-label="Close preview">&times;</button></div>
+      <div class="lb-body"><img id="lbImg" alt=""></div>
+      <div class="lb-foot"><a id="lbDownload" class="lb-btn" download>Download</a></div>
+    </div>
+  </div>
 
   <script>
     // ---- Settings ----
@@ -348,6 +393,19 @@
         badge.style.background = COLORS[f.ext] || "#4f6272";
         badge.textContent = f.ext.slice(0, 4);
 
+        // Images get a small thumbnail instead of the colored badge
+        let lead = badge;
+        if (f.type === "images") {
+          const img = document.createElement("img");
+          img.className = "thumb";
+          img.loading = "lazy";
+          img.alt = "";
+          img.src = `${FOLDER}/${encodeURIComponent(f.name)}`;
+          img.addEventListener("error", () => img.replaceWith(badge));
+          img.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); openPreview(f); });
+          lead = img;
+        }
+
         const info = document.createElement("div");
         info.className = "info";
         const title = document.createElement("div");
@@ -388,7 +446,19 @@
         dl.className = "dl";
         dl.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg><span>Download</span>';
 
-        a.append(badge, info, dl);
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        if (f.type === "images") {
+          const pv = document.createElement("span");
+          pv.className = "pv";
+          pv.setAttribute("role", "button");
+          pv.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span>';
+          pv.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); openPreview(f); });
+          actions.appendChild(pv);
+        }
+        actions.appendChild(dl);
+
+        a.append(lead, info, actions);
         li.appendChild(a);
         list.appendChild(li);
       });
@@ -438,6 +508,27 @@
       chips.querySelectorAll(".chip").forEach(c => c.classList.toggle("active", c === btn));
       render();
     });
+
+    // ---- Image preview window ----
+    const lightbox = document.getElementById("lightbox");
+    function openPreview(f) {
+      const url = `${FOLDER}/${encodeURIComponent(f.name)}`;
+      document.getElementById("lbImg").src = url;
+      document.getElementById("lbTitle").textContent = f.title;
+      const d = document.getElementById("lbDownload");
+      d.href = url;
+      d.download = f.name;
+      lightbox.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+    function closePreview() {
+      lightbox.hidden = true;
+      document.getElementById("lbImg").removeAttribute("src");
+      document.body.style.overflow = "";
+    }
+    document.getElementById("lbClose").addEventListener("click", closePreview);
+    lightbox.addEventListener("click", e => { if (e.target === lightbox) closePreview(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && !lightbox.hidden) closePreview(); });
   </script>
 </body>
 </html>
