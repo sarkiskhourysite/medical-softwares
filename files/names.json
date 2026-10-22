@@ -14,9 +14,10 @@
     "topic": "crohn",
     "version": "1.0",
     "platform": "Windows,Python3.12",
-    "author": "Dr. sarkis khoury",
-    "date": "2026-10-21",
-  "uc_calculators.pyw"{
+    "author": "Dr. sarkis khoury"
+  },
+  "date": "2026-10-21",
+    "uc_calculators.pyw"{
     "title": "UC Calculators",
     "description": "Multiple score calculators uc disease.",
     "topic": "ulcerative colitis",
