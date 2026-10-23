@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milan Ultrasound Criteria Offline Calculator</title>
+<style>
+:root{
+  --navy:#123f6b; --blue:#2d7db3; --teal:#168d92; --green:#257a55;
+  --red:#b92f3a; --gold:#9a6a00; --light:#eef7fc; --border:#cfe2ef;
+  --text:#183247; --muted:#607582; --shadow:0 8px 24px rgba(27,79,114,.09);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#f4f8fb;color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;line-height:1.45
+}
+.page{max-width:1000px;margin:28px auto;padding:0 16px 40px}
+.header,.panel,.result,.actions,.refs{
+  background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)
+}
+.header{
+  padding:26px;background:linear-gradient(135deg,#fff,#eef9ff);margin-bottom:18px
+}
+h1{margin:0 0 6px;color:var(--navy);font-size:clamp(28px,4vw,42px);line-height:1.1}
+.subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:10px}
+.intro{margin:0;color:var(--muted);max-width:860px}
+.patient{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+label.small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:5px}
+input[type=text],input[type=date],input[type=number]{
+  width:100%;border:1px solid var(--border);border-radius:9px;
+  padding:10px 12px;font-size:16px;background:#fff
+}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{padding:20px}
+.panel h2{margin:0 0 14px;color:var(--navy);font-size:20px}
+.big-input{position:relative}
+.big-input input{
+  font-size:30px;font-weight:800;color:var(--navy);
+  padding:16px 70px 16px 16px
+}
+.unit{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:14px;font-weight:700;pointer-events:none
+}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+.option-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.option-row label{
+  display:flex;align-items:center;gap:9px;border:1px solid var(--border);
+  border-radius:12px;padding:14px;cursor:pointer;background:#fff
+}
+.option-row input{accent-color:var(--blue);transform:scale(1.15)}
+.formula{
+  margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:14px;
+  background:#fff;text-align:center
+}
+.formula strong{font-size:22px;color:var(--navy)}
+.result-wrap{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:18px}
+.result{padding:22px;border-width:2px}
+.eyebrow{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.score-line{display:flex;align-items:baseline;gap:8px;margin:5px 0}
+#score{font-size:56px;line-height:1;font-weight:800;color:var(--navy)}
+.status{font-size:20px;font-weight:800;margin-top:10px}
+.detail{margin:4px 0 0;color:var(--muted)}
+.actions{
+  padding:20px;display:flex;flex-direction:column;justify-content:center;gap:10px
+}
+button{
+  border:0;border-radius:10px;padding:12px 14px;font-size:15px;
+  font-weight:700;cursor:pointer
+}
+.print{background:var(--navy);color:#fff}
+.reset{background:#eaf2f7;color:var(--navy)}
+.breakdown{
+  margin-top:16px;background:#fff;border:1px solid var(--border);
+  border-radius:16px;padding:18px;box-shadow:var(--shadow)
+}
+.breakdown h3{margin:0 0 12px;color:var(--navy)}
+.breakdown-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mini{background:#f6fafc;border:1px solid #e1edf4;border-radius:10px;padding:11px 12px}
+.mini .name{color:var(--muted);font-size:13px}
+.mini .value{color:var(--navy);font-size:22px;font-weight:800}
+.threshold{
+  margin-top:16px;padding:14px 16px;border-radius:13px;
+  border:1px solid #cfe2ef;background:#eef7fc;color:#38566c
+}
+.refs{margin-top:16px;padding:17px;color:var(--muted);font-size:14px}
+.refs strong{color:var(--navy)}
+@media(max-width:760px){
+  .grid,.result-wrap,.patient{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .option-row,.breakdown-grid{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}.page{max-width:none;margin:0;padding:0}
+  .header,.panel,.result,.actions,.refs,.breakdown{box-shadow:none}
+  .actions{display:none}.panel{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<section class="header">
+  <h1>Milan Ultrasound Criteria (MUC)</h1>
+  <div class="subtitle">Offline intestinal ultrasound activity calculator for ulcerative colitis</div>
+  <p class="intro">
+    Enter bowel wall thickness and indicate whether a color Doppler signal is present.
+    The calculator applies the validated Milan Ultrasound Criteria formula.
+  </p>
+
+  <div class="patient">
+    <div>
+      <label class="small" for="patient">Patient / Identifier (optional)</label>
+      <input id="patient" type="text" placeholder="Enter name or identifier">
+    </div>
+    <div>
+      <label class="small" for="date">Assessment date</label>
+      <input id="date" type="date">
+    </div>
+  </div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>1. Bowel wall thickness (BWT)</h2>
+    <div class="big-input">
+      <input id="bwt" type="number" min="0" max="20" step="0.1" value="3.0" aria-label="Bowel wall thickness in millimeters">
+      <span class="unit">mm</span>
+    </div>
+    <div class="hint">Enter the bowel wall thickness measured on intestinal ultrasound.</div>
+  </div>
+
+  <div class="panel">
+    <h2>2. Color Doppler signal (CDS)</h2>
+    <div class="option-row">
+      <label>
+        <input type="radio" name="cds" value="0" checked>
+        <span><strong>Absent</strong><br><span class="hint">CDS = 0</span></span>
+      </label>
+      <label>
+        <input type="radio" name="cds" value="1">
+        <span><strong>Present</strong><br><span class="hint">CDS = 1</span></span>
+      </label>
+    </div>
+    <div class="hint">Use the presence or absence of bowel-wall vascular signal on color Doppler.</div>
+  </div>
+</section>
+
+<section class="formula">
+  <strong>MUC = 1.4 × BWT (mm) + 2 × CDS</strong>
+</section>
+
+<section class="result-wrap">
+  <div class="result">
+    <div class="eyebrow">Milan Ultrasound Criteria score</div>
+    <div class="score-line"><span id="score">4.2</span></div>
+    <div class="status" id="status">Below activity threshold</div>
+    <p class="detail" id="detail">A MUC score ≤6.2 is below the commonly used threshold for active endoscopic disease.</p>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="print" id="printBtn">Print / Save as PDF</button>
+    <button type="button" class="reset" id="resetBtn">Reset calculator</button>
+  </div>
+</section>
+
+<section class="breakdown">
+  <h3>Calculation breakdown</h3>
+  <div class="breakdown-grid">
+    <div class="mini">
+      <div class="name">BWT contribution</div>
+      <div class="value" id="bwtPart">4.2</div>
+    </div>
+    <div class="mini">
+      <div class="name">Doppler contribution</div>
+      <div class="value" id="cdsPart">0</div>
+    </div>
+  </div>
+</section>
+
+<div class="threshold">
+  <strong>Interpretation:</strong> a MUC score <strong>&gt;6.2</strong> is commonly used to indicate active endoscopic disease,
+  while lower values suggest lower inflammatory activity. The score should be interpreted together with symptoms,
+  biomarkers, endoscopy, and the full ultrasound examination.
+</div>
+
+<section class="refs">
+  <strong>Medical basis</strong><br>
+  Milan Ultrasound Criteria formula: <strong>MUC = 1.4 × bowel wall thickness (mm) + 2 × color Doppler signal</strong>,
+  with CDS coded as 0 when absent and 1 when present. A threshold of <strong>&gt;6.2</strong> has been validated for active
+  endoscopic disease in ulcerative colitis.<br><br>
+  <strong>Educational use only.</strong> This calculator does not replace trained intestinal ultrasound interpretation,
+  clinical judgment, biomarkers, or endoscopy.
+</section>
+
+</main>
+
+<script>
+(function(){
+  const bwt = document.getElementById('bwt');
+  const score = document.getElementById('score');
+  const status = document.getElementById('status');
+  const detail = document.getElementById('detail');
+  const bwtPart = document.getElementById('bwtPart');
+  const cdsPart = document.getElementById('cdsPart');
+  const date = document.getElementById('date');
+  const patient = document.getElementById('patient');
+
+  function getCDS(){
+    const el = document.querySelector('input[name="cds"]:checked');
+    return el ? Number(el.value) : 0;
+  }
+
+  function calculate(){
+    let thickness = Number(bwt.value);
+    if(!Number.isFinite(thickness)) thickness = 0;
+    thickness = Math.max(0, Math.min(20, thickness));
+
+    const cds = getCDS();
+    const part1 = 1.4 * thickness;
+    const part2 = 2 * cds;
+    const total = part1 + part2;
+
+    score.textContent = total.toFixed(1);
+    bwtPart.textContent = part1.toFixed(1);
+    cdsPart.textContent = part2.toFixed(1);
+
+    if(total > 6.2){
+      status.textContent = 'Active endoscopic disease suggested';
+      status.style.color = '#b92f3a';
+      detail.textContent = 'The MUC score is above the validated >6.2 threshold commonly associated with active endoscopic disease.';
+    }else{
+      status.textContent = 'Below activity threshold';
+      status.style.color = '#257a55';
+      detail.textContent = 'The MUC score is ≤6.2, below the commonly used threshold for active endoscopic disease.';
+    }
+  }
+
+  function setToday(){
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    date.value = local;
+  }
+
+  function reset(){
+    patient.value = '';
+    bwt.value = '3.0';
+    document.querySelectorAll('input[name="cds"]').forEach(el => el.checked = false);
+    document.querySelector('input[name="cds"][value="0"]').checked = true;
+    setToday();
+    calculate();
+  }
+
+  bwt.addEventListener('input', calculate);
+  document.querySelectorAll('input[name="cds"]').forEach(el => el.addEventListener('change', calculate));
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  setToday();
+  calculate();
+})();
+</script>
+</body>
+</html>
