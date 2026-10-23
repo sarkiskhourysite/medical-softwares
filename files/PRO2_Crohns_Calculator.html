@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crohn’s PRO2 Calculator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f0f5f8;color:#18394c;
+font:16px/1.5 system-ui,Arial,sans-serif}
+main{max-width:1000px;margin:auto;padding:25px}
+h1{margin:0;color:#123e58}
+h2{font-size:20px;margin-top:0}
+p{margin:8px 0}
+.subtitle{color:#536c7a}
+.card{background:white;border:1px solid #d4e1e8;
+border-radius:12px;padding:22px;margin-top:20px}
+.notice{background:#e5f3f5;border-left:4px solid #087786;
+padding:14px;margin-top:18px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #dbe5eb}
+th{background:#eef5f8}
+input,select{width:100%;min-height:44px;border:1px solid #aabfcb;
+border-radius:6px;padding:8px;font:inherit;background:white;color:inherit}
+input:focus,select:focus,button:focus-visible{
+outline:3px solid #62bcc9;outline-offset:2px}
+input[aria-invalid="true"]{border:2px solid #b32335}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.score{font-size:48px;font-weight:bold;color:#086b7b}
+.status{font-size:19px;font-weight:700}
+.small{font-size:14px;color:#506977}
+.error{color:#a32235}
+button{padding:11px 17px;border:1px solid #087786;border-radius:6px;
+color:#086675;background:white;font:inherit;cursor:pointer}
+button:hover{background:#e7f4f5}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+a{color:#086b7b}
+footer{font-size:13px;margin-top:25px;color:#506977}
+@media(max-width:650px){
+main{padding:15px}.card{padding:15px}
+.results{grid-template-columns:1fr}
+th,td{padding:8px 5px}h1{font-size:27px}
+}
+@media print{
+body{background:white}main{padding:0;max-width:none}
+.actions{display:none}.card{break-inside:avoid}
+input,select{border:0;padding:0}
+.score{font-size:32px}footer{font-size:11px}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>PRO2 calculator</h1>
+<p class="subtitle">Two-item patient-reported outcome for Crohn’s disease</p>
+
+<div class="notice">
+Record <strong>liquid or very soft stools</strong> and
+<strong>overall abdominal pain</strong> for each preceding 24 hours.
+Complete all seven days. Missing entries are not counted as zero.
+</div>
+
+<form id="form" novalidate>
+<section class="card">
+<h2>Seven-day diary</h2>
+<p class="small">
+Pain: 0 = none · 1 = mild · 2 = moderate · 3 = severe.
+Count only liquid or very soft stools, not formed stools.
+</p>
+<table>
+<thead>
+<tr>
+<th scope="col">Day</th>
+<th scope="col">Stool count</th>
+<th scope="col">Abdominal pain</th>
+</tr>
+</thead>
+<tbody id="diary"></tbody>
+</table>
+<p id="progress" class="small"></p>
+<p id="error" class="error" role="alert"></p>
+</section>
+
+<div class="results" aria-live="polite">
+<section class="card">
+<h2>Weighted mean-daily PRO2</h2>
+<div id="score" class="score">—</div>
+<p id="averages">Complete all seven days.</p>
+<p class="small">
+PRO2 = (2 × mean daily stool count) + (5 × mean daily pain rating)
+</p>
+<p id="calculation" class="small"></p>
+</section>
+
+<section class="card">
+<h2>Separate symptom targets</h2>
+<p><strong>Mean stool count ≤3 AND mean pain rating ≤1</strong></p>
+<p id="target" class="status">Not yet assessable</p>
+<p id="targetDetails" class="small"></p>
+<p class="small">
+Both targets must be met. This is a commonly used symptom-based
+clinical remission definition; trial protocols may differ.
+</p>
+</section>
+</div>
+
+<section class="card">
+<h2>How to interpret the result</h2>
+<p>
+Lower weighted scores indicate fewer symptoms.
+The weighted score and the separate symptom targets are
+<strong>not interchangeable</strong>.
+</p>
+<p class="small">
+Original research linked weighted mean-daily PRO2 values of approximately
+8, 14 and 34 to CDAI values of 150, 220 and 450, respectively.
+These are research correspondences, not universal severity bands.
+Do not compare a seven-day weighted sum with these mean-daily values.
+</p>
+<p>
+<strong>Low PRO2 does not prove intestinal healing.</strong>
+Interpret alongside fecal calprotectin, CRP, endoscopy or imaging.
+</p>
+</section>
+
+<div class="actions">
+<button type="button" id="print">Print / Save PDF</button>
+<button type="reset">Clear form</button>
+</div>
+</form>
+
+<footer>
+<p>
+Works offline. This page does not save or transmit entries.
+Reloading clears the assessment. Use Print / Save PDF to retain it.
+</p>
+<p>
+References:
+<a href="https://pubmed.ncbi.nlm.nih.gov/25348809/"
+target="_blank" rel="noopener">Khanna et al., 2015</a> ·
+<a href="https://pubmed.ncbi.nlm.nih.gov/33359090/"
+target="_blank" rel="noopener">STRIDE-II, 2021</a> ·
+<a href="https://doi.org/10.1186/s41687-025-00851-y"
+target="_blank" rel="noopener">Lewis et al., 2025</a>.
+Reference links require internet access.
+</p>
+</footer>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const diary = $("diary");
+const painLabels = ["None", "Mild", "Moderate", "Severe"];
+
+for (let day = 1; day <= 7; day++) {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <th scope="row">Day ${day}</th>
+    <td>
+      <input id="s${day}" type="number" min="0" step="1"
+        required placeholder="Enter count"
+        aria-label="Day ${day} liquid or very soft stool count">
+    </td>
+    <td>
+      <select id="p${day}" required
+        aria-label="Day ${day} abdominal pain">
+        <option value="">Select…</option>
+        ${painLabels.map((label, value) =>
+          `<option value="${value}">${value} — ${label}</option>`
+        ).join("")}
+      </select>
+    </td>`;
+  diary.appendChild(row);
+}
+
+const format = value =>
+  new Intl.NumberFormat("en", {maximumFractionDigits: 2}).format(value);
+
+function update() {
+  let stools = 0;
+  let pain = 0;
+  let completeDays = 0;
+  let invalid = false;
+
+  for (let day = 1; day <= 7; day++) {
+    const stoolInput = $("s" + day);
+    const painInput = $("p" + day);
+    const raw = stoolInput.value;
+    const count = Number(raw);
+
+    const validStool =
+      raw !== "" &&
+      Number.isSafeInteger(count) &&
+      count >= 0 &&
+      count <= Math.floor((Number.MAX_SAFE_INTEGER - 105) / 14);
+
+    const validPain = ["0", "1", "2", "3"].includes(painInput.value);
+    const badStool =
+      stoolInput.validity.badInput || (raw !== "" && !validStool);
+
+    stoolInput.setAttribute("aria-invalid", String(badStool));
+    invalid = invalid || badStool;
+
+    if (validStool && validPain) {
+      stools += count;
+      pain += Number(painInput.value);
+      completeDays++;
+    }
+  }
+
+  $("progress").textContent = `${completeDays} of 7 days complete`;
+  $("error").textContent = invalid
+    ? "Check stool counts: enter a nonnegative whole number."
+    : "";
+
+  if (completeDays !== 7 || invalid) {
+    $("score").textContent = "—";
+    $("averages").textContent = "Complete all seven days.";
+    $("calculation").textContent = "";
+    $("target").textContent = "Not yet assessable";
+    $("targetDetails").textContent = "";
+    return;
+  }
+
+  const meanSF = stools / 7;
+  const meanAP = pain / 7;
+  const score = (2 * stools + 5 * pain) / 7;
+
+  // Compare exact totals to avoid rounding-dependent classification.
+  const stoolTarget = stools <= 21;
+  const painTarget = pain <= 7;
+
+  $("score").textContent = format(score);
+  $("averages").textContent =
+    `Mean stool count: ${format(meanSF)}/day · ` +
+    `Mean pain rating: ${format(meanAP)}/3`;
+
+  $("calculation").textContent =
+    `Weekly totals: ${stools} stools; pain-rating sum ${pain}. ` +
+    `PRO2 = (2 × ${stools} + 5 × ${pain}) ÷ 7 = ${format(score)}.`;
+
+  $("target").textContent = stoolTarget && painTarget
+    ? "Both symptom targets met"
+    : "Symptom remission targets not both met";
+
+  $("targetDetails").textContent =
+    `Stool target: ${stoolTarget ? "met" : "not met"}. ` +
+    `Pain target: ${painTarget ? "met" : "not met"}. ` +
+    "Classification uses unrounded values.";
+}
+
+$("form").addEventListener("input", update);
+$("form").addEventListener("change", update);
+$("form").addEventListener("submit", event => event.preventDefault());
+$("form").addEventListener("reset", () => setTimeout(update, 0));
+$("print").addEventListener("click", () => {
+  update();
+  window.print();
+});
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crohn's Disease – Personalized Treatment Assessment</title>
+<style>
+:root{--navy:#17365d;--blue:#dcebf7;--line:#aab6c2;--light:#f5f8fb;--text:#1f2933;--muted:#5e6c7b;--warn:#fff7e6}
+*{box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--text);margin:0;background:#eef2f5;font-size:14px}
+.page{max-width:1000px;margin:22px auto;background:#fff;padding:28px 34px;box-shadow:0 2px 12px #0002}
+.header{background:var(--navy);color:#fff;padding:18px 22px;border-radius:8px;margin-bottom:18px}
+.header h1{font-size:24px;margin:0 0 5px}.header p{margin:0;font-size:12px;opacity:.9}
+.actions{display:flex;gap:10px;margin-bottom:16px}
+button{border:0;border-radius:5px;padding:9px 16px;font-weight:bold;cursor:pointer}
+.primary{background:var(--navy);color:#fff}.secondary{background:#e5eaf0;color:#263442}
+.section{margin:15px 0 19px;break-inside:avoid}
+.section-title{background:var(--blue);color:var(--navy);font-size:15px;font-weight:bold;padding:8px 10px;border-radius:5px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px 14px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:9px 16px}
+.field label,.label{font-size:11px;color:var(--muted);font-weight:bold;display:block;margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],textarea,select{width:100%;border:1px solid var(--line);border-radius:4px;padding:7px;background:#fff;font:inherit}
+textarea{min-height:58px;resize:vertical}
+.checks{display:flex;flex-wrap:wrap;gap:7px 18px;margin:5px 0 9px}
+.checks label{font-size:13px;white-space:nowrap}
+input[type=checkbox]{vertical-align:-1px;margin-right:5px}
+.subhead{font-weight:bold;color:#46586a;font-size:12px;margin:9px 0 5px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border:1px solid var(--line);padding:6px;vertical-align:middle}
+th{background:var(--light);color:var(--navy);text-align:left}
+table select,table input{padding:5px}
+.failure{border:1px solid #e3c47a;background:var(--warn);padding:10px;border-radius:6px;margin-top:10px}
+.note{font-size:11px;color:var(--muted);line-height:1.4}
+.summary{border:2px solid var(--navy);border-radius:6px;padding:12px}
+.footer{border-top:1px solid var(--line);padding-top:10px;margin-top:20px;font-size:10px;color:var(--muted)}
+@media(max-width:700px){.grid,.grid2{grid-template-columns:1fr}.page{margin:0;padding:16px}.checks{display:grid;grid-template-columns:1fr 1fr}}
+@media print{
+ @page{size:A4;margin:11mm}
+ body{background:#fff;font-size:10.5px}
+ .page{max-width:none;margin:0;padding:0;box-shadow:none}
+ .actions{display:none}
+ .header{padding:11px 14px;margin-bottom:9px;border-radius:0}
+ .header h1{font-size:18px}
+ .section{margin:8px 0 11px}
+ .section-title{padding:5px 7px;font-size:12px}
+ input,select,textarea{border:1px solid #777!important;padding:4px!important;font-size:10px!important}
+ textarea{min-height:36px}
+ .grid,.grid2{gap:5px 9px}
+ th,td{padding:4px}
+ .failure{padding:7px}
+ button{display:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="header">
+<h1>Crohn's Disease – Personalized Treatment Assessment</h1>
+<p>Offline clinical worksheet for phenotype, previous treatment failure, patient-specific factors and objective monitoring.</p>
+</div>
+<div class="actions">
+<button class="primary" onclick="window.print()">Print / Save as PDF</button>
+<button class="secondary" onclick="if(confirm('Clear all entered data?')) document.getElementById('cdform').reset()">Reset form</button>
+</div>
+
+<form id="cdform">
+<section class="section">
+<div class="section-title">1. Patient & Disease Profile</div>
+<div class="grid">
+<div class="field"><label>Patient / ID</label><input type="text"></div>
+<div class="field"><label>Date</label><input type="date"></div>
+<div class="field"><label>Age</label><input type="number"></div>
+<div class="field"><label>Disease duration</label><input type="text"></div>
+</div>
+<div class="subhead">Location</div>
+<div class="checks"><label><input type="checkbox">Ileal (L1)</label><label><input type="checkbox">Colonic (L2)</label><label><input type="checkbox">Ileocolonic (L3)</label><label><input type="checkbox">Upper GI (L4)</label></div>
+<div class="subhead">Behavior / phenotype</div>
+<div class="checks"><label><input type="checkbox">Inflammatory (B1)</label><label><input type="checkbox">Stricturing (B2)</label><label><input type="checkbox">Penetrating (B3)</label><label><input type="checkbox">Perianal disease</label><label><input type="checkbox">Previous Crohn's surgery</label></div>
+<div class="subhead">Extraintestinal manifestations</div>
+<div class="checks"><label><input type="checkbox">None</label><label><input type="checkbox">Articular</label><label><input type="checkbox">Skin</label><label><input type="checkbox">Ocular</label><label><input type="checkbox">Hepatobiliary</label><label><input type="checkbox">Other</label></div>
+</section>
+
+<section class="section">
+<div class="section-title">2. Current Disease Activity</div>
+<div class="grid">
+<div class="field"><label>Symptoms</label><select><option></option><option>Mild</option><option>Moderate</option><option>Severe</option></select></div>
+<div class="field"><label>HBI / CDAI</label><input type="text"></div>
+<div class="field"><label>CRP (mg/L)</label><input type="text"></div>
+<div class="field"><label>Fecal calprotectin (µg/g)</label><input type="text"></div>
+<div class="field"><label>Albumin (g/L)</label><input type="text"></div>
+<div class="field"><label>SES-CD</label><input type="text"></div>
+<div class="field"><label>Endoscopic activity</label><select><option></option><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select></div>
+<div class="field"><label>Imaging / IUS</label><select><option></option><option>No active inflammation</option><option>Active inflammation</option><option>Stricture</option><option>Penetrating complication</option><option>Abscess</option></select></div>
+</div>
+</section>
+
+<section class="section">
+<div class="section-title">3. High-Risk / Complicating Features</div>
+<div class="checks">
+<label><input type="checkbox">Extensive disease</label><label><input type="checkbox">Deep/severe ulceration</label><label><input type="checkbox">Stricturing disease</label><label><input type="checkbox">Penetrating disease</label><label><input type="checkbox">Perianal/fistulizing disease</label><label><input type="checkbox">Previous resection</label><label><input type="checkbox">Weight loss/malnutrition</label><label><input type="checkbox">High inflammatory burden</label><label><input type="checkbox">Rapid progression</label><label><input type="checkbox">EIMs</label>
+</div>
+<div class="field" style="max-width:260px"><label>Overall disease risk</label><select><option></option><option>Lower</option><option>Intermediate</option><option>Higher</option></select></div>
+</section>
+
+<section class="section">
+<div class="section-title">4. Previous Advanced Therapies</div>
+<table>
+<thead><tr><th>Treatment</th><th>Outcome</th><th>Reason stopped / failure details</th></tr></thead>
+<tbody>
+<script>
+["Infliximab","Adalimumab","Vedolizumab","Ustekinumab","Risankizumab","Mirikizumab","Guselkumab","Upadacitinib"].forEach(function(d){
+ document.write('<tr><td><b>'+d+'</b></td><td><select><option>Not used</option><option>Response</option><option>Primary non-response (PNR)</option><option>Secondary loss of response (LOR)</option><option>Intolerance</option></select></td><td><input type="text"></td></tr>');
+});
+</script>
+</tbody>
+</table>
+<p class="note"><b>PNR:</b> primary non-response. <b>LOR:</b> secondary loss of response.</p>
+</section>
+
+<section class="section">
+<div class="section-title">5. Characterize Previous Biologic Failure</div>
+<div class="grid">
+<div class="field"><label>Active inflammation objectively confirmed?</label><select><option></option><option>Yes</option><option>No</option><option>Not assessed</option></select></div>
+<div class="field"><label>Drug trough level</label><input type="text"></div>
+<div class="field"><label>Trough interpretation</label><select><option></option><option>Low</option><option>Adequate / high</option><option>Unknown</option></select></div>
+<div class="field"><label>Anti-drug antibodies</label><select><option></option><option>Negative / low</option><option>High</option><option>Unknown</option></select></div>
+</div>
+<div class="failure">
+<div class="subhead" style="margin-top:0">Probable failure mechanism</div>
+<div class="checks">
+<label><input type="checkbox">Pharmacokinetic failure</label>
+<label><input type="checkbox">Immunogenic failure</label>
+<label><input type="checkbox">Pharmacodynamic / mechanistic failure</label>
+<label><input type="checkbox">Intolerance / adverse event</label>
+<label><input type="checkbox">Uncertain</label>
+</div>
+<p class="note">Interpret drug concentrations and anti-drug antibodies in the context of the specific drug, assay, timing and objective evidence of inflammation.</p>
+</div>
+</section>
+
+<section class="section">
+<div class="section-title">6. Patient-Specific Treatment Considerations</div>
+<div class="checks">
+<label><input type="checkbox">Infection risk</label><label><input type="checkbox">Previous serious infection</label><label><input type="checkbox">Malignancy history/risk</label><label><input type="checkbox">Cardiovascular risk</label><label><input type="checkbox">Thromboembolic risk</label><label><input type="checkbox">Liver disease</label><label><input type="checkbox">Pregnancy/family planning</label><label><input type="checkbox">EIMs</label><label><input type="checkbox">Need rapid control</label><label><input type="checkbox">Prefers oral</label><label><input type="checkbox">Prefers injection</label><label><input type="checkbox">Prefers infusion</label>
+</div>
+<div class="field"><label>Other important considerations</label><input type="text"></div>
+</section>
+
+<section class="section">
+<div class="section-title">7. Therapeutic Strategy</div>
+<div class="grid2">
+<div class="field"><label>Previous mechanism(s)</label><textarea></textarea></div>
+<div class="field"><label>Mechanism(s) not previously used</label><textarea></textarea></div>
+<div class="field"><label>Candidate therapy / therapies</label><textarea></textarea></div>
+<div class="field"><label>Reason for selection</label><textarea></textarea></div>
+</div>
+<div class="checks">
+<label><input type="checkbox">Start new mechanism</label><label><input type="checkbox">Switch within class</label><label><input type="checkbox">Optimize current therapy</label><label><input type="checkbox">Address immunogenicity</label><label><input type="checkbox">Surgery/endoscopic evaluation</label><label><input type="checkbox">Further investigation first</label>
+</div>
+</section>
+
+<section class="section">
+<div class="section-title">8. Early Response Monitoring</div>
+<div class="subhead">Baseline / follow-up measures</div>
+<div class="checks"><label><input type="checkbox">Symptoms / HBI</label><label><input type="checkbox">CRP</label><label><input type="checkbox">Fecal calprotectin</label><label><input type="checkbox">Endoscopy</label><label><input type="checkbox">IUS / imaging</label><label><input type="checkbox">TDM when applicable</label></div>
+<div class="grid">
+<div class="field"><label>Early follow-up (weeks)</label><input type="text"></div>
+<div class="field"><label>Clinical response</label><select><option></option><option>Improved</option><option>Unchanged</option><option>Worse</option></select></div>
+<div class="field"><label>Biomarker response</label><select><option></option><option>Improved</option><option>Normalized</option><option>No adequate response</option></select></div>
+<div class="field"><label>Objective imaging/endoscopic response</label><select><option></option><option>Improved</option><option>No adequate response</option><option>Not yet assessed</option></select></div>
+</div>
+<div class="subhead">Decision</div>
+<div class="checks"><label><input type="checkbox">Continue</label><label><input type="checkbox">Optimize</label><label><input type="checkbox">TDM</label><label><input type="checkbox">Confirm active inflammation</label><label><input type="checkbox">Switch mechanism</label></div>
+</section>
+
+<section class="section">
+<div class="section-title">9. Treatment Goals & Final Plan</div>
+<div class="checks"><label><input type="checkbox">Clinical remission</label><label><input type="checkbox">Biomarker normalization</label><label><input type="checkbox">Endoscopic response</label><label><input type="checkbox">Endoscopic healing</label><label><input type="checkbox">Radiologic/transmural improvement</label><label><input type="checkbox">Steroid-free remission</label><label><input type="checkbox">Fistula response/remission</label></div>
+<div class="summary">
+<div class="field"><label>Final treatment plan</label><textarea style="min-height:75px"></textarea></div>
+<div class="grid2" style="margin-top:8px">
+<div class="field"><label>Next objective assessment</label><input type="text"></div>
+<div class="field"><label>Clinician</label><input type="text"></div>
+</div>
+</div>
+</section>
+</form>
+
+<div class="footer">
+This worksheet is intended as a structured clinical decision-support/documentation aid. It is not a validated predictive score and does not independently determine the optimal Crohn's disease treatment. Clinical judgment, current prescribing information and applicable guidelines remain necessary.
+</div>
+</div>
+</body>
+</html>
