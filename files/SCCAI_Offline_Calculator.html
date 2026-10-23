@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCCAI Calculator - Ulcerative Colitis</title>
+  <style>
+    :root{
+      --navy:#123f6b;
+      --blue:#2d7db3;
+      --light:#eef7fc;
+      --teal:#198f91;
+      --green:#eefaf8;
+      --red:#c73d4a;
+      --orange:#d97706;
+      --border:#cfe2ef;
+      --text:#183247;
+      --muted:#5d7180;
+      --white:#ffffff;
+      --shadow:0 8px 24px rgba(27,79,114,.09);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:#f4f8fb;
+      line-height:1.45;
+    }
+
+    .page{
+      max-width:1100px;
+      margin:28px auto;
+      padding:0 16px 40px;
+    }
+
+    .header{
+      background:linear-gradient(135deg,#ffffff 0%,#eef9ff 100%);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:26px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      color:var(--navy);
+      font-size:clamp(28px,4vw,42px);
+    }
+
+    .subtitle{
+      color:var(--teal);
+      font-size:18px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+
+    .intro{
+      margin:0;
+      color:var(--muted);
+      max-width:850px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card h2{
+      margin:0;
+      padding:14px 18px;
+      font-size:19px;
+      color:var(--navy);
+      background:var(--light);
+      border-bottom:1px solid var(--border);
+    }
+
+    .card .content{
+      padding:14px 18px 18px;
+    }
+
+    .option{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      padding:10px 11px;
+      border-radius:10px;
+      cursor:pointer;
+      margin:3px 0;
+      transition:.15s ease;
+    }
+
+    .option:hover{
+      background:#f5fafc;
+    }
+
+    .option input{
+      margin-top:3px;
+      transform:scale(1.15);
+      accent-color:var(--blue);
+      flex:0 0 auto;
+    }
+
+    .choice{
+      flex:1;
+      display:flex;
+      gap:9px;
+      align-items:flex-start;
+    }
+
+    .points{
+      color:var(--blue);
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .extra label{
+      display:flex;
+      gap:9px;
+      align-items:flex-start;
+      padding:9px 11px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    .extra label:hover{
+      background:#f5fafc;
+    }
+
+    .extra input{
+      margin-top:3px;
+      transform:scale(1.15);
+      accent-color:var(--teal);
+    }
+
+    .result-wrap{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:1.25fr .75fr;
+      gap:16px;
+    }
+
+    .result{
+      background:linear-gradient(135deg,#ffffff,#edf9f8);
+      border:2px solid #b9dfdc;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .result-label{
+      font-size:15px;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .score-line{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      margin:4px 0 6px;
+    }
+
+    #totalScore{
+      font-size:54px;
+      line-height:1;
+      font-weight:800;
+      color:var(--navy);
+    }
+
+    .out-of{
+      font-size:22px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    #interpretation{
+      font-size:18px;
+      font-weight:700;
+      margin:10px 0 4px;
+    }
+
+    #detail{
+      color:var(--muted);
+      margin:0;
+    }
+
+    .actions{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:10px;
+    }
+
+    button{
+      border:0;
+      border-radius:10px;
+      padding:12px 14px;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .print{
+      background:var(--navy);
+      color:#fff;
+    }
+
+    .reset{
+      background:#eaf2f7;
+      color:var(--navy);
+    }
+
+    .breakdown{
+      margin-top:16px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .breakdown h3{
+      margin:0 0 12px;
+      color:var(--navy);
+    }
+
+    .breakdown-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .mini{
+      background:#f6fafc;
+      border:1px solid #e1edf4;
+      border-radius:10px;
+      padding:10px 12px;
+    }
+
+    .mini .name{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .mini .value{
+      color:var(--navy);
+      font-size:20px;
+      font-weight:800;
+    }
+
+    .note{
+      margin-top:18px;
+      background:#fff8e7;
+      border:1px solid #f0d59a;
+      border-radius:14px;
+      padding:14px 16px;
+      color:#6f5316;
+    }
+
+    .references{
+      margin-top:18px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .references strong{color:var(--navy)}
+
+    .patient-info{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .patient-info input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:9px;
+      padding:10px 12px;
+      font-size:15px;
+      background:#fff;
+    }
+
+    .patient-info label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:5px;
+      font-weight:700;
+    }
+
+    @media(max-width:760px){
+      .grid,.result-wrap,.breakdown-grid,.patient-info{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media print{
+      body{background:white}
+      .page{max-width:none;margin:0;padding:0}
+      .header,.card,.result,.actions,.breakdown,.references,.note{
+        box-shadow:none;
+      }
+      .actions{display:none}
+      .card{break-inside:avoid}
+      .header{margin-bottom:12px}
+      button{display:none}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="header">
+      <h1>Simple Clinical Colitis Activity Index (SCCAI)</h1>
+      <div class="subtitle">Offline ulcerative colitis symptom activity calculator</div>
+      <p class="intro">
+        Select one response in each symptom domain and tick any extraintestinal manifestations that are present.
+        The score updates automatically.
+      </p>
+
+      <div class="patient-info">
+        <div>
+          <label for="patientName">Patient / Identifier (optional)</label>
+          <input id="patientName" type="text" placeholder="Enter name or identifier">
+        </div>
+        <div>
+          <label for="assessmentDate">Assessment date</label>
+          <input id="assessmentDate" type="date">
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+
+      <div class="card">
+        <h2>1. Daytime bowel frequency</h2>
+        <div class="content">
+          <label class="option"><span class="choice"><input type="radio" name="day" value="0" checked>1–3 stools/day</span><span class="points">0 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="day" value="1">4–6 stools/day</span><span class="points">1 point</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="day" value="2">7–9 stools/day</span><span class="points">2 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="day" value="3">10 or more stools/day</span><span class="points">3 points</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Nocturnal bowel frequency</h2>
+        <div class="content">
+          <label class="option"><span class="choice"><input type="radio" name="night" value="0" checked>0 stools/night</span><span class="points">0 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="night" value="1">1–3 stools/night</span><span class="points">1 point</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="night" value="2">4 or more stools/night</span><span class="points">2 points</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Urgency of defecation</h2>
+        <div class="content">
+          <label class="option"><span class="choice"><input type="radio" name="urgency" value="0" checked>None</span><span class="points">0 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="urgency" value="1">Hurry</span><span class="points">1 point</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="urgency" value="2">Immediately</span><span class="points">2 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="urgency" value="3">Incontinence</span><span class="points">3 points</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4. Blood in stool</h2>
+        <div class="content">
+          <label class="option"><span class="choice"><input type="radio" name="blood" value="0" checked>None</span><span class="points">0 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="blood" value="1">Trace</span><span class="points">1 point</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="blood" value="2">Occasionally frank</span><span class="points">2 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="blood" value="3">Usually frank</span><span class="points">3 points</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5. General well-being</h2>
+        <div class="content">
+          <label class="option"><span class="choice"><input type="radio" name="wellbeing" value="0" checked>Very well</span><span class="points">0 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="wellbeing" value="1">Slightly below par</span><span class="points">1 point</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="wellbeing" value="2">Poor</span><span class="points">2 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="wellbeing" value="3">Very poor</span><span class="points">3 points</span></label>
+          <label class="option"><span class="choice"><input type="radio" name="wellbeing" value="4">Terrible</span><span class="points">4 points</span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>6. Extraintestinal features</h2>
+        <div class="content extra">
+          <p style="margin-top:0;color:#5d7180"><strong>+1 point for each feature present:</strong></p>
+          <label><input type="checkbox" class="extra-item" value="1">Arthropathy / arthritis</label>
+          <label><input type="checkbox" class="extra-item" value="1">Uveitis</label>
+          <label><input type="checkbox" class="extra-item" value="1">Erythema nodosum</label>
+          <label><input type="checkbox" class="extra-item" value="1">Pyoderma gangrenosum</label>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="result-wrap">
+      <div class="result">
+        <div class="result-label">Total SCCAI score</div>
+        <div class="score-line">
+          <span id="totalScore">0</span>
+          <span class="out-of">/ 19</span>
+        </div>
+        <div id="interpretation">Low symptom activity</div>
+        <p id="detail">Scores below 5 are commonly considered below the threshold used to indicate active disease.</p>
+      </div>
+
+      <div class="actions">
+        <button class="print" type="button" onclick="window.print()">Print / Save as PDF</button>
+        <button class="reset" type="button" onclick="resetForm()">Reset calculator</button>
+      </div>
+    </section>
+
+    <section class="breakdown">
+      <h3>Score breakdown</h3>
+      <div class="breakdown-grid">
+        <div class="mini"><div class="name">Daytime frequency</div><div class="value" id="bDay">0</div></div>
+        <div class="mini"><div class="name">Nocturnal frequency</div><div class="value" id="bNight">0</div></div>
+        <div class="mini"><div class="name">Urgency</div><div class="value" id="bUrgency">0</div></div>
+        <div class="mini"><div class="name">Blood in stool</div><div class="value" id="bBlood">0</div></div>
+        <div class="mini"><div class="name">General well-being</div><div class="value" id="bWellbeing">0</div></div>
+        <div class="mini"><div class="name">Extraintestinal features</div><div class="value" id="bExtra">0</div></div>
+      </div>
+    </section>
+
+    <div class="note">
+      <strong>Clinical note:</strong> SCCAI is a symptom-based activity index. A score of <strong>5 or more</strong> is commonly used as a threshold suggesting active ulcerative colitis, but the score should not be used alone to make treatment decisions. Clinical assessment, biomarkers, endoscopy, and other investigations may be required.
+    </div>
+
+    <section class="references">
+      <strong>Medical references</strong><br>
+      Walmsley RS, Ayres RCS, Pounder RE, Allan RN. A simple clinical colitis activity index. <em>Gut</em>. 1998;43(1):29–32. doi:10.1136/gut.43.1.29.<br>
+      European Crohn's and Colitis Organisation (ECCO) e-Guide: Simple Clinical Colitis Activity Index (SCCAI).<br><br>
+      <strong>Educational use only.</strong> This calculator does not replace medical evaluation or clinician judgment.
+    </section>
+  </main>
+
+  <script>
+    function getRadioValue(name){
+      const el = document.querySelector('input[name="' + name + '"]:checked');
+      return el ? Number(el.value) : 0;
+    }
+
+    function calculate(){
+      const day = getRadioValue('day');
+      const night = getRadioValue('night');
+      const urgency = getRadioValue('urgency');
+      const blood = getRadioValue('blood');
+      const wellbeing = getRadioValue('wellbeing');
+
+      let extra = 0;
+      document.querySelectorAll('.extra-item:checked').forEach(el => {
+        extra += Number(el.value);
+      });
+
+      const total = day + night + urgency + blood + wellbeing + extra;
+
+      document.getElementById('totalScore').textContent = total;
+      document.getElementById('bDay').textContent = day;
+      document.getElementById('bNight').textContent = night;
+      document.getElementById('bUrgency').textContent = urgency;
+      document.getElementById('bBlood').textContent = blood;
+      document.getElementById('bWellbeing').textContent = wellbeing;
+      document.getElementById('bExtra').textContent = extra;
+
+      const interpretation = document.getElementById('interpretation');
+      const detail = document.getElementById('detail');
+
+      if(total >= 5){
+        interpretation.textContent = 'Active disease suggested';
+        interpretation.style.color = '#c73d4a';
+        detail.textContent = 'A score of 5 or more is commonly used as a threshold suggesting clinically active ulcerative colitis.';
+      }else{
+        interpretation.textContent = 'Below common active-disease threshold';
+        interpretation.style.color = '#198f91';
+        detail.textContent = 'Scores below 5 are commonly considered below the threshold used to indicate active disease.';
+      }
+    }
+
+    function resetForm(){
+      document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+      ['day','night','urgency','blood','wellbeing'].forEach(name => {
+        const first = document.querySelector('input[name="' + name + '"]');
+        if(first) first.checked = true;
+      });
+      document.querySelectorAll('.extra-item').forEach(el => el.checked = false);
+      document.getElementById('patientName').value = '';
+      setToday();
+      calculate();
+    }
+
+    function setToday(){
+      const d = new Date();
+      const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+      document.getElementById('assessmentDate').value = local;
+    }
+
+    document.querySelectorAll('input[type="radio"], .extra-item').forEach(el => {
+      el.addEventListener('change', calculate);
+    });
+
+    setToday();
+    calculate();
+  </script>
+</body>
+</html>

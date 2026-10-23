@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UCEIS Offline Calculator</title>
+  <style>
+    :root{
+      --navy:#123f6b; --blue:#2d7db3; --teal:#178f96; --light:#eef7fc;
+      --red:#c94452; --green:#1f8f67; --gold:#c98516; --border:#cfe2ef;
+      --text:#183247; --muted:#607582; --white:#fff;
+      --shadow:0 8px 24px rgba(27,79,114,.09);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:#f4f8fb;color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+    .page{max-width:1120px;margin:28px auto;padding:0 16px 40px}
+    .header{background:linear-gradient(135deg,#fff 0%,#edf9ff 100%);border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow);margin-bottom:20px}
+    h1{margin:0 0 6px;color:var(--navy);font-size:clamp(26px,4vw,40px);line-height:1.12}
+    .subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:12px}
+    .intro{margin:0;color:var(--muted);max-width:900px}
+    .patient-info{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+    .patient-info label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:700}
+    .patient-info input{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:15px;background:#fff}
+    .important{margin-top:15px;padding:12px 14px;border-radius:12px;background:#fff8e7;border:1px solid #efd698;color:#6f5316;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .card{background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+    .card h2{margin:0;padding:14px 16px;font-size:19px;color:var(--navy);background:var(--light);border-bottom:1px solid var(--border)}
+    .range{display:block;color:var(--teal);font-size:13px;margin-top:3px}
+    .content{padding:12px 16px 18px}
+    .option{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 10px;border-radius:10px;cursor:pointer;margin:3px 0;transition:.15s ease}
+    .option:hover{background:#f5fafc}
+    .option input{margin-top:3px;transform:scale(1.15);accent-color:var(--blue);flex:0 0 auto}
+    .choice{display:flex;align-items:flex-start;gap:8px;flex:1}
+    .label-main{font-weight:700;color:var(--text)}
+    .descriptor{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.38;font-weight:400}
+    .points{color:var(--blue);font-weight:800;white-space:nowrap}
+    .result-wrap{margin-top:20px;display:grid;grid-template-columns:1.3fr .7fr;gap:16px}
+    .result{background:linear-gradient(135deg,#fff,#edf9f8);border:2px solid #b9dfdc;border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+    .result-label{font-size:14px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .score-line{display:flex;align-items:baseline;gap:10px;margin:5px 0}
+    #totalScore{font-size:56px;line-height:1;font-weight:800;color:var(--navy)}
+    .out-of{font-size:22px;color:var(--muted);font-weight:700}
+    #interpretation{margin:10px 0 4px;font-size:18px;font-weight:700}
+    #detail{margin:0;color:var(--muted)}
+    .actions{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;gap:10px}
+    button{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer}
+    .print{background:var(--navy);color:#fff}
+    .reset{background:#eaf2f7;color:var(--navy)}
+    .breakdown,.research-bands,.references{margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .breakdown h3,.research-bands h3{margin:0 0 12px;color:var(--navy)}
+    .breakdown-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .mini{background:#f6fafc;border:1px solid #e1edf4;border-radius:10px;padding:11px 12px}
+    .mini .name{color:var(--muted);font-size:13px}
+    .mini .value{color:var(--navy);font-size:22px;font-weight:800}
+    .research-bands p{margin:0 0 10px;color:var(--muted);font-size:14px}
+    .bands{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .band{border-radius:9px;padding:10px;text-align:center;background:#f6fafc;border:1px solid #e1edf4;font-size:14px}
+    .band strong{display:block;color:var(--navy)}
+    .references{color:var(--muted);font-size:14px}
+    .references strong{color:var(--navy)}
+    @media(max-width:900px){.grid,.result-wrap,.patient-info{grid-template-columns:1fr}.bands{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.breakdown-grid,.bands{grid-template-columns:1fr}}
+    @media print{
+      body{background:#fff}.page{max-width:none;margin:0;padding:0}
+      .header,.card,.result,.actions,.breakdown,.research-bands,.references{box-shadow:none}
+      .actions{display:none}.card{break-inside:avoid}.header{margin-bottom:12px}
+    }
+  </style>
+</head>
+<body>
+<main class="page">
+
+  <section class="header">
+    <h1>Ulcerative Colitis Endoscopic Index of Severity (UCEIS)</h1>
+    <div class="subtitle">Offline endoscopic severity calculator for ulcerative colitis</div>
+    <p class="intro">
+      UCEIS is calculated by adding three endoscopic descriptors: vascular pattern, bleeding, and erosions/ulcers.
+      The standard simplified score ranges from 0 to 8.
+    </p>
+
+    <div class="important">
+      <strong>Scoring principle:</strong> score the <strong>most severely affected area</strong> seen during the examination.
+    </div>
+
+    <div class="patient-info">
+      <div>
+        <label for="patientName">Patient / Identifier (optional)</label>
+        <input id="patientName" type="text" placeholder="Enter name or identifier">
+      </div>
+      <div>
+        <label for="assessmentDate">Assessment date</label>
+        <input id="assessmentDate" type="date">
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+
+    <div class="card">
+      <h2>1. Vascular pattern <span class="range">Score 0–2</span></h2>
+      <div class="content">
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="vascular" value="0" checked>
+            <span>
+              <span class="label-main">Normal</span>
+              <span class="descriptor">Normal vascular pattern with clearly defined capillary arborisation, or with blurring/patchy loss of capillary margins.</span>
+            </span>
+          </span>
+          <span class="points">0</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="vascular" value="1">
+            <span>
+              <span class="label-main">Patchy obliteration</span>
+              <span class="descriptor">Patchy obliteration of the vascular pattern.</span>
+            </span>
+          </span>
+          <span class="points">1</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="vascular" value="2">
+            <span>
+              <span class="label-main">Obliterated</span>
+              <span class="descriptor">Complete obliteration of the vascular pattern.</span>
+            </span>
+          </span>
+          <span class="points">2</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Bleeding <span class="range">Score 0–3</span></h2>
+      <div class="content">
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="bleeding" value="0" checked>
+            <span><span class="label-main">None</span><span class="descriptor">No visible blood.</span></span>
+          </span>
+          <span class="points">0</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="bleeding" value="1">
+            <span><span class="label-main">Mucosal</span><span class="descriptor">Spots or streaks of coagulated blood on the mucosal surface ahead of the scope that can be washed away.</span></span>
+          </span>
+          <span class="points">1</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="bleeding" value="2">
+            <span><span class="label-main">Luminal mild</span><span class="descriptor">Some free liquid blood in the lumen.</span></span>
+          </span>
+          <span class="points">2</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="bleeding" value="3">
+            <span><span class="label-main">Luminal moderate or severe</span><span class="descriptor">Frank blood in the lumen ahead of the endoscope, or visible mucosal oozing after washing intraluminal blood.</span></span>
+          </span>
+          <span class="points">3</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Erosions and ulcers <span class="range">Score 0–3</span></h2>
+      <div class="content">
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="erosions" value="0" checked>
+            <span><span class="label-main">None</span><span class="descriptor">Normal mucosa; no visible erosions or ulcers.</span></span>
+          </span>
+          <span class="points">0</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="erosions" value="1">
+            <span><span class="label-main">Erosions</span><span class="descriptor">Tiny (≤5 mm) mucosal defects, white or yellow in colour, with a flat edge.</span></span>
+          </span>
+          <span class="points">1</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="erosions" value="2">
+            <span><span class="label-main">Superficial ulcer</span><span class="descriptor">Larger (&gt;5 mm) discrete fibrin-covered defects that remain superficial.</span></span>
+          </span>
+          <span class="points">2</span>
+        </label>
+        <label class="option">
+          <span class="choice">
+            <input type="radio" name="erosions" value="3">
+            <span><span class="label-main">Deep ulcer</span><span class="descriptor">Deeper excavated mucosal defects, typically with a slightly raised edge.</span></span>
+          </span>
+          <span class="points">3</span>
+        </label>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="result-wrap">
+    <div class="result">
+      <div class="result-label">Total UCEIS</div>
+      <div class="score-line"><span id="totalScore">0</span><span class="out-of">/ 8</span></div>
+      <div id="interpretation">No endoscopic activity detected by UCEIS</div>
+      <p id="detail">UCEIS 0 is the lowest possible score. Higher scores indicate more severe endoscopic inflammation.</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="print" onclick="window.print()">Print / Save as PDF</button>
+      <button type="button" class="reset" onclick="resetForm()">Reset calculator</button>
+    </div>
+  </section>
+
+  <section class="breakdown">
+    <h3>Score breakdown</h3>
+    <div class="breakdown-grid">
+      <div class="mini"><div class="name">Vascular pattern</div><div class="value" id="bVascular">0</div></div>
+      <div class="mini"><div class="name">Bleeding</div><div class="value" id="bBleeding">0</div></div>
+      <div class="mini"><div class="name">Erosions / ulcers</div><div class="value" id="bErosions">0</div></div>
+    </div>
+  </section>
+
+  <section class="research-bands">
+    <h3>Optional research severity bands</h3>
+    <p>Some published studies have stratified UCEIS as shown below. These bands are useful for reference, but should not be treated as universally accepted clinical cutoffs.</p>
+    <div class="bands">
+      <div class="band"><strong>0–1</strong>Remission / minimal</div>
+      <div class="band"><strong>2–4</strong>Mild</div>
+      <div class="band"><strong>5–6</strong>Moderate</div>
+      <div class="band"><strong>7–8</strong>Severe</div>
+    </div>
+  </section>
+
+  <section class="references">
+    <strong>Medical references</strong><br>
+    Travis SPL et al. Developing an instrument to assess the endoscopic severity of ulcerative colitis: the Ulcerative Colitis Endoscopic Index of Severity (UCEIS). <em>Gut</em>. 2012.<br>
+    Travis SPL et al. Reliability and initial validation of the Ulcerative Colitis Endoscopic Index of Severity. <em>Gastroenterology</em>. 2013.<br>
+    ECCO-ESGAR guidance on IBD scores and endoscopic assessment.<br><br>
+    <strong>Educational use only.</strong> This calculator does not replace endoscopist interpretation, clinical judgment, histology, biomarkers, or other appropriate assessment.
+  </section>
+
+</main>
+
+<script>
+  function getRadioValue(name){
+    const el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? Number(el.value) : 0;
+  }
+
+  function calculate(){
+    const vascular = getRadioValue('vascular');
+    const bleeding = getRadioValue('bleeding');
+    const erosions = getRadioValue('erosions');
+    const total = vascular + bleeding + erosions;
+
+    document.getElementById('totalScore').textContent = total;
+    document.getElementById('bVascular').textContent = vascular;
+    document.getElementById('bBleeding').textContent = bleeding;
+    document.getElementById('bErosions').textContent = erosions;
+
+    const interpretation = document.getElementById('interpretation');
+    const detail = document.getElementById('detail');
+
+    if(total === 0){
+      interpretation.textContent = 'No endoscopic activity detected by UCEIS';
+      interpretation.style.color = '#1f8f67';
+      detail.textContent = 'UCEIS 0 is the lowest possible score. Higher scores indicate more severe endoscopic inflammation.';
+    } else {
+      interpretation.textContent = 'Endoscopic inflammatory activity present';
+      interpretation.style.color = total >= 7 ? '#c94452' : (total >= 5 ? '#c98516' : '#2d7db3');
+      detail.textContent = 'UCEIS = ' + total + '. Higher UCEIS values indicate greater endoscopic severity. Interpret in the full clinical context.';
+    }
+  }
+
+  function resetForm(){
+    ['vascular','bleeding','erosions'].forEach(name => {
+      document.querySelectorAll('input[name="' + name + '"]').forEach(el => el.checked = false);
+      const first = document.querySelector('input[name="' + name + '"]');
+      if(first) first.checked = true;
+    });
+    document.getElementById('patientName').value = '';
+    setToday();
+    calculate();
+  }
+
+  function setToday(){
+    const d = new Date();
+    const localDate = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    document.getElementById('assessmentDate').value = localDate;
+  }
+
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.addEventListener('change', calculate));
+  setToday();
+  calculate();
+</script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Partial Mayo Score Calculator</title>
+  <style>
+    :root{
+      --navy:#123f6b;
+      --blue:#2d7db3;
+      --teal:#198f91;
+      --light:#eef7fc;
+      --green:#edf9f4;
+      --red:#c94452;
+      --border:#cfe2ef;
+      --text:#183247;
+      --muted:#607582;
+      --white:#ffffff;
+      --shadow:0 8px 24px rgba(27,79,114,.09);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:#f4f8fb;
+      color:var(--text);
+      font-family:Arial, Helvetica, sans-serif;
+      line-height:1.45;
+    }
+
+    .page{
+      max-width:1050px;
+      margin:28px auto;
+      padding:0 16px 40px;
+    }
+
+    .header{
+      background:linear-gradient(135deg,#ffffff 0%,#edf9ff 100%);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:26px;
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      color:var(--navy);
+      font-size:clamp(28px,4vw,42px);
+    }
+
+    .subtitle{
+      color:var(--teal);
+      font-size:18px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+
+    .intro{
+      margin:0;
+      color:var(--muted);
+      max-width:820px;
+    }
+
+    .patient-info{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .patient-info label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:5px;
+      font-weight:700;
+    }
+
+    .patient-info input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:9px;
+      padding:10px 12px;
+      font-size:15px;
+      background:#fff;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card h2{
+      margin:0;
+      padding:14px 16px;
+      font-size:19px;
+      color:var(--navy);
+      background:var(--light);
+      border-bottom:1px solid var(--border);
+    }
+
+    .card .hint{
+      margin:0;
+      padding:11px 16px 0;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .card .content{
+      padding:10px 16px 18px;
+    }
+
+    .option{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px;
+      border-radius:10px;
+      cursor:pointer;
+      margin:3px 0;
+      transition:.15s ease;
+    }
+
+    .option:hover{background:#f5fafc}
+
+    .option input{
+      margin-top:3px;
+      transform:scale(1.15);
+      accent-color:var(--blue);
+      flex:0 0 auto;
+    }
+
+    .choice{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      flex:1;
+    }
+
+    .points{
+      color:var(--blue);
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .result-wrap{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:1.25fr .75fr;
+      gap:16px;
+    }
+
+    .result{
+      background:linear-gradient(135deg,#ffffff,#edf9f8);
+      border:2px solid #b9dfdc;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:var(--shadow);
+    }
+
+    .result-label{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .score-line{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      margin:5px 0;
+    }
+
+    #totalScore{
+      font-size:54px;
+      line-height:1;
+      font-weight:800;
+      color:var(--navy);
+    }
+
+    .out-of{
+      font-size:22px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    #interpretation{
+      margin:10px 0 4px;
+      font-size:18px;
+      font-weight:700;
+    }
+
+    #detail{
+      margin:0;
+      color:var(--muted);
+    }
+
+    .actions{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:10px;
+    }
+
+    button{
+      border:0;
+      border-radius:10px;
+      padding:12px 14px;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .print{
+      background:var(--navy);
+      color:#fff;
+    }
+
+    .reset{
+      background:#eaf2f7;
+      color:var(--navy);
+    }
+
+    .breakdown{
+      margin-top:16px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .breakdown h3{
+      margin:0 0 12px;
+      color:var(--navy);
+    }
+
+    .breakdown-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .mini{
+      background:#f6fafc;
+      border:1px solid #e1edf4;
+      border-radius:10px;
+      padding:11px 12px;
+    }
+
+    .mini .name{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .mini .value{
+      color:var(--navy);
+      font-size:22px;
+      font-weight:800;
+    }
+
+    .note{
+      margin-top:18px;
+      background:#fff8e7;
+      border:1px solid #efd698;
+      border-radius:14px;
+      padding:14px 16px;
+      color:#6f5316;
+    }
+
+    .references{
+      margin-top:18px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .references strong{color:var(--navy)}
+
+    @media(max-width:850px){
+      .grid{grid-template-columns:1fr}
+      .result-wrap,.breakdown-grid,.patient-info{grid-template-columns:1fr}
+    }
+
+    @media print{
+      body{background:#fff}
+      .page{max-width:none;margin:0;padding:0}
+      .header,.card,.result,.actions,.breakdown,.references,.note{box-shadow:none}
+      .actions{display:none}
+      .card{break-inside:avoid}
+      .header{margin-bottom:12px}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+
+    <section class="header">
+      <h1>Partial Mayo Score</h1>
+      <div class="subtitle">Offline ulcerative colitis clinical activity calculator</div>
+      <p class="intro">
+        Select one response in each of the three domains. The Partial Mayo Score excludes the endoscopic subscore and ranges from 0 to 9.
+      </p>
+
+      <div class="patient-info">
+        <div>
+          <label for="patientName">Patient / Identifier (optional)</label>
+          <input id="patientName" type="text" placeholder="Enter name or identifier">
+        </div>
+        <div>
+          <label for="assessmentDate">Assessment date</label>
+          <input id="assessmentDate" type="date">
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+
+      <div class="card">
+        <h2>1. Stool frequency</h2>
+        <p class="hint">Compared with the patient's normal number of stools</p>
+        <div class="content">
+          <label class="option">
+            <span class="choice"><input type="radio" name="stool" value="0" checked>Normal number of stools</span>
+            <span class="points">0</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="stool" value="1">1–2 stools more than normal</span>
+            <span class="points">1</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="stool" value="2">3–4 stools more than normal</span>
+            <span class="points">2</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="stool" value="3">5 or more stools more than normal</span>
+            <span class="points">3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Rectal bleeding</h2>
+        <p class="hint">Based on the most severe bleeding pattern</p>
+        <div class="content">
+          <label class="option">
+            <span class="choice"><input type="radio" name="bleeding" value="0" checked>None</span>
+            <span class="points">0</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="bleeding" value="1">Streaks of blood less than half the time</span>
+            <span class="points">1</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="bleeding" value="2">Obvious blood most of the time</span>
+            <span class="points">2</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="bleeding" value="3">Blood alone passes</span>
+            <span class="points">3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Physician global assessment</h2>
+        <p class="hint">Overall clinical impression based on symptoms and physical findings</p>
+        <div class="content">
+          <label class="option">
+            <span class="choice"><input type="radio" name="pga" value="0" checked>Normal</span>
+            <span class="points">0</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="pga" value="1">Mild disease</span>
+            <span class="points">1</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="pga" value="2">Moderate disease</span>
+            <span class="points">2</span>
+          </label>
+          <label class="option">
+            <span class="choice"><input type="radio" name="pga" value="3">Severe disease</span>
+            <span class="points">3</span>
+          </label>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="result-wrap">
+      <div class="result">
+        <div class="result-label">Partial Mayo Score</div>
+        <div class="score-line">
+          <span id="totalScore">0</span>
+          <span class="out-of">/ 9</span>
+        </div>
+        <div id="interpretation">Low clinical activity</div>
+        <p id="detail">A lower score indicates less clinically active ulcerative colitis.</p>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="print" onclick="window.print()">Print / Save as PDF</button>
+        <button type="button" class="reset" onclick="resetForm()">Reset calculator</button>
+      </div>
+    </section>
+
+    <section class="breakdown">
+      <h3>Score breakdown</h3>
+      <div class="breakdown-grid">
+        <div class="mini">
+          <div class="name">Stool frequency</div>
+          <div class="value" id="bStool">0</div>
+        </div>
+        <div class="mini">
+          <div class="name">Rectal bleeding</div>
+          <div class="value" id="bBleeding">0</div>
+        </div>
+        <div class="mini">
+          <div class="name">Physician global assessment</div>
+          <div class="value" id="bPga">0</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="note">
+      <strong>Clinical note:</strong> A commonly used definition of clinical remission in studies is a Partial Mayo Score of
+      <strong>≤2 with no individual subscore &gt;1</strong>. Definitions may vary by study or clinical context, so the score should be interpreted together with clinical judgment and, when appropriate, biomarkers and endoscopy.
+    </div>
+
+    <section class="references">
+      <strong>Educational use only.</strong> This calculator is intended to support standardized assessment and does not replace medical evaluation or treatment decisions.
+    </section>
+
+  </main>
+
+  <script>
+    function getRadioValue(name){
+      const el = document.querySelector('input[name="' + name + '"]:checked');
+      return el ? Number(el.value) : 0;
+    }
+
+    function calculate(){
+      const stool = getRadioValue('stool');
+      const bleeding = getRadioValue('bleeding');
+      const pga = getRadioValue('pga');
+      const total = stool + bleeding + pga;
+
+      document.getElementById('totalScore').textContent = total;
+      document.getElementById('bStool').textContent = stool;
+      document.getElementById('bBleeding').textContent = bleeding;
+      document.getElementById('bPga').textContent = pga;
+
+      const interpretation = document.getElementById('interpretation');
+      const detail = document.getElementById('detail');
+
+      const remission = total <= 2 && stool <= 1 && bleeding <= 1 && pga <= 1;
+
+      if(remission){
+        interpretation.textContent = 'Meets a commonly used clinical remission definition';
+        interpretation.style.color = '#198f91';
+        detail.textContent = 'Total score ≤2 and no individual subscore is greater than 1.';
+      }else if(total <= 4){
+        interpretation.textContent = 'Lower-to-moderate clinical activity';
+        interpretation.style.color = '#2d7db3';
+        detail.textContent = 'The score does not meet the commonly used remission definition shown below.';
+      }else{
+        interpretation.textContent = 'Higher clinical activity';
+        interpretation.style.color = '#c94452';
+        detail.textContent = 'Higher Partial Mayo scores indicate greater clinical disease activity.';
+      }
+    }
+
+    function resetForm(){
+      ['stool','bleeding','pga'].forEach(name => {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(el => el.checked = false);
+        const first = document.querySelector('input[name="' + name + '"]');
+        if(first) first.checked = true;
+      });
+
+      document.getElementById('patientName').value = '';
+      setToday();
+      calculate();
+    }
+
+    function setToday(){
+      const d = new Date();
+      const localDate = new Date(d.getTime() - d.getTimezoneOffset()*60000)
+        .toISOString()
+        .slice(0,10);
+      document.getElementById('assessmentDate').value = localDate;
+    }
+
+    document.querySelectorAll('input[type="radio"]').forEach(el => {
+      el.addEventListener('change', calculate);
+    });
+
+    setToday();
+    calculate();
+  </script>
+</body>
+</html>

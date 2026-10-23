@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UC-PRO2 Offline Calculator</title>
+<style>
+:root{
+  --navy:#123f6b; --blue:#2d7db3; --teal:#168d92; --green:#257a55;
+  --red:#b92f3a; --gold:#9a6a00; --light:#eef7fc; --border:#cfe2ef;
+  --text:#183247; --muted:#607582; --shadow:0 8px 24px rgba(27,79,114,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f8fb;color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+.page{max-width:1050px;margin:28px auto;padding:0 16px 40px}
+.header,.card,.result,.actions,.baseline,.refs{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)}
+.header{padding:26px;background:linear-gradient(135deg,#fff,#eef9ff);margin-bottom:18px}
+h1{margin:0 0 6px;color:var(--navy);font-size:clamp(28px,4vw,42px);line-height:1.1}
+.subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:10px}
+.intro{margin:0;color:var(--muted);max-width:860px}
+.patient{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+label.small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:5px}
+input[type=text],input[type=date],input[type=number]{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:16px;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{overflow:hidden}
+.card h2{margin:0;padding:14px 16px;font-size:20px;color:var(--navy);background:var(--light);border-bottom:1px solid var(--border)}
+.card .hint{padding:10px 16px 0;color:var(--muted);font-size:13px;font-weight:700}
+.content{padding:10px 16px 18px}
+.option{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 10px;border-radius:10px;cursor:pointer;margin:3px 0}
+.option:hover{background:#f5fafc}
+.option input{margin-top:3px;transform:scale(1.15);accent-color:var(--blue);flex:0 0 auto}
+.choice{display:flex;align-items:flex-start;gap:8px;flex:1}
+.points{color:var(--blue);font-weight:800;white-space:nowrap}
+.baseline{margin-top:16px;padding:18px}
+.baseline h3{margin:0 0 10px;color:var(--navy)}
+.baseline-grid{display:grid;grid-template-columns:1fr 180px;gap:14px;align-items:end}
+.baseline-note{font-size:13px;color:var(--muted)}
+.result-wrap{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:18px}
+.result{padding:22px;border-width:2px}
+.eyebrow{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.score-line{display:flex;align-items:baseline;gap:10px;margin:5px 0}
+#score{font-size:56px;line-height:1;font-weight:800;color:var(--navy)}
+.out-of{font-size:22px;color:var(--muted);font-weight:700}
+.status{font-size:19px;font-weight:800;margin-top:10px}
+.detail{margin:4px 0 0;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{padding:8px 10px;border-radius:999px;background:#f4f7f9;border:1px solid #dde9ef;font-size:13px;font-weight:700;color:var(--muted)}
+.badge.good{background:#eef8f3;border-color:#cae7d8;color:var(--green)}
+.badge.warn{background:#fff0f1;border-color:#efc7cb;color:var(--red)}
+.actions{padding:20px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+button{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer}
+.print{background:var(--navy);color:#fff}
+.reset{background:#eaf2f7;color:var(--navy)}
+.breakdown{margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.breakdown h3{margin:0 0 12px;color:var(--navy)}
+.breakdown-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mini{background:#f6fafc;border:1px solid #e1edf4;border-radius:10px;padding:11px 12px}
+.mini .name{color:var(--muted);font-size:13px}
+.mini .value{color:var(--navy);font-size:22px;font-weight:800}
+.note{margin-top:16px;padding:14px 16px;border-radius:13px;border:1px solid #cfe2ef;background:#eef7fc;color:#38566c}
+.refs{margin-top:16px;padding:17px;color:var(--muted);font-size:14px}
+.refs strong{color:var(--navy)}
+@media(max-width:760px){.grid,.result-wrap,.patient,.baseline-grid{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff}.page{max-width:none;margin:0;padding:0}
+  .header,.card,.result,.actions,.baseline,.refs,.breakdown{box-shadow:none}
+  .actions{display:none}.card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<section class="header">
+  <h1>PRO2 (UC-PRO2)</h1>
+  <div class="subtitle">Offline patient-reported outcome calculator for ulcerative colitis</div>
+  <p class="intro">
+    UC-PRO2 combines two patient-reported Mayo components: stool frequency and rectal bleeding.
+    The total score ranges from 0 to 6, with lower scores indicating fewer reported UC symptoms.
+  </p>
+
+  <div class="patient">
+    <div>
+      <label class="small" for="patient">Patient / Identifier (optional)</label>
+      <input id="patient" type="text" placeholder="Enter name or identifier">
+    </div>
+    <div>
+      <label class="small" for="date">Assessment date</label>
+      <input id="date" type="date">
+    </div>
+  </div>
+</section>
+
+<section class="grid">
+
+  <div class="card">
+    <h2>1. Stool frequency</h2>
+    <div class="hint">Compared with the patient's normal number of stools</div>
+    <div class="content">
+      <label class="option">
+        <span class="choice"><input type="radio" name="stool" value="0" checked>Normal number of stools</span>
+        <span class="points">0</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="stool" value="1">1–2 stools more than normal</span>
+        <span class="points">1</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="stool" value="2">3–4 stools more than normal</span>
+        <span class="points">2</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="stool" value="3">5 or more stools more than normal</span>
+        <span class="points">3</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Rectal bleeding</h2>
+    <div class="hint">Use the Mayo rectal bleeding subscore</div>
+    <div class="content">
+      <label class="option">
+        <span class="choice"><input type="radio" name="bleeding" value="0" checked>No blood</span>
+        <span class="points">0</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="bleeding" value="1">Streaks of blood with stool less than half the time</span>
+        <span class="points">1</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="bleeding" value="2">Obvious blood with stool most of the time</span>
+        <span class="points">2</span>
+      </label>
+      <label class="option">
+        <span class="choice"><input type="radio" name="bleeding" value="3">Blood alone passed</span>
+        <span class="points">3</span>
+      </label>
+    </div>
+  </div>
+
+</section>
+
+<section class="baseline">
+  <h3>Optional: compare with baseline</h3>
+  <div class="baseline-grid">
+    <div>
+      <div class="baseline-note">
+        Enter the patient's previous/baseline UC-PRO2 total (0–6) to check whether the current score represents a
+        <strong>≥50% reduction</strong>, a commonly used definition of clinical response.
+      </div>
+    </div>
+    <div>
+      <label class="small" for="baseline">Baseline UC-PRO2</label>
+      <input id="baseline" type="number" min="0" max="6" step="1" placeholder="Optional">
+    </div>
+  </div>
+</section>
+
+<section class="result-wrap">
+  <div class="result">
+    <div class="eyebrow">Current UC-PRO2 score</div>
+    <div class="score-line"><span id="score">0</span><span class="out-of">/ 6</span></div>
+    <div class="status" id="status">Symptomatic remission target met</div>
+    <p class="detail" id="detail">Rectal bleeding = 0 and stool-frequency subscore = 0.</p>
+
+    <div class="badges">
+      <span class="badge good" id="remissionBadge">Remission criterion: met</span>
+      <span class="badge" id="responseBadge">Response: baseline not entered</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="print" id="printBtn">Print / Save as PDF</button>
+    <button type="button" class="reset" id="resetBtn">Reset calculator</button>
+  </div>
+</section>
+
+<section class="breakdown">
+  <h3>Score breakdown</h3>
+  <div class="breakdown-grid">
+    <div class="mini">
+      <div class="name">Stool frequency</div>
+      <div class="value" id="bStool">0</div>
+    </div>
+    <div class="mini">
+      <div class="name">Rectal bleeding</div>
+      <div class="value" id="bBleeding">0</div>
+    </div>
+  </div>
+</section>
+
+<div class="note">
+  <strong>Interpretation:</strong> UC-PRO2 is a symptom measure only. STRIDE-II-style clinical remission uses
+  <strong>rectal bleeding = 0 and stool-frequency subscore = 0</strong>, while clinical response is commonly defined
+  as a <strong>≥50% reduction from baseline</strong>. Trial-specific definitions may differ.
+  UC-PRO2 does not demonstrate endoscopic or histologic healing.
+</div>
+
+<section class="refs">
+  <strong>Medical basis</strong><br>
+  UC-PRO2 consists of the Mayo stool-frequency and rectal-bleeding patient-reported subscores.
+  Treat-to-target guidance commonly defines UC clinical response as a ≥50% reduction in these PRO2 components
+  and clinical remission as rectal bleeding = 0 with stool-frequency subscore = 0.<br><br>
+  <strong>Educational use only.</strong> This calculator does not replace clinical assessment, biomarkers,
+  endoscopy, histology, or treatment decisions.
+</section>
+
+</main>
+
+<script>
+(function(){
+  const q = s => document.querySelector(s);
+  const qa = s => document.querySelectorAll(s);
+
+  function radioValue(name){
+    const el = q('input[name="' + name + '"]:checked');
+    return el ? Number(el.value) : 0;
+  }
+
+  function calculate(){
+    const stool = radioValue('stool');
+    const bleeding = radioValue('bleeding');
+    const total = stool + bleeding;
+
+    q('#score').textContent = total;
+    q('#bStool').textContent = stool;
+    q('#bBleeding').textContent = bleeding;
+
+    const remission = stool === 0 && bleeding === 0;
+    const status = q('#status');
+    const detail = q('#detail');
+    const remissionBadge = q('#remissionBadge');
+
+    if(remission){
+      status.textContent = 'Symptomatic remission target met';
+      status.style.color = '#257a55';
+      detail.textContent = 'Rectal bleeding = 0 and stool-frequency subscore = 0.';
+      remissionBadge.textContent = 'Remission criterion: met';
+      remissionBadge.className = 'badge good';
+    } else {
+      status.textContent = 'Symptomatic remission target not met';
+      status.style.color = '#b92f3a';
+      detail.textContent = 'At least one UC-PRO2 component remains above 0.';
+      remissionBadge.textContent = 'Remission criterion: not met';
+      remissionBadge.className = 'badge warn';
+    }
+
+    const baselineEl = q('#baseline');
+    const raw = baselineEl.value.trim();
+    const responseBadge = q('#responseBadge');
+
+    if(raw === ''){
+      responseBadge.textContent = 'Response: baseline not entered';
+      responseBadge.className = 'badge';
+      return;
+    }
+
+    let baseline = Number(raw);
+    if(!Number.isFinite(baseline)){
+      responseBadge.textContent = 'Response: invalid baseline';
+      responseBadge.className = 'badge warn';
+      return;
+    }
+
+    baseline = Math.max(0, Math.min(6, Math.round(baseline)));
+
+    if(baseline === 0){
+      responseBadge.textContent = total === 0
+        ? 'Response: already at baseline score 0'
+        : 'Response: baseline 0, % reduction not applicable';
+      responseBadge.className = total === 0 ? 'badge good' : 'badge warn';
+      return;
+    }
+
+    const reduction = ((baseline - total) / baseline) * 100;
+    const response = reduction >= 50;
+
+    responseBadge.textContent =
+      'Response: ' + (response ? '≥50% reduction met' : '≥50% reduction not met') +
+      ' (' + Math.round(reduction) + '%)';
+
+    responseBadge.className = response ? 'badge good' : 'badge warn';
+  }
+
+  function setToday(){
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    q('#date').value = local;
+  }
+
+  function reset(){
+    ['stool','bleeding'].forEach(name => {
+      qa('input[name="' + name + '"]').forEach(el => el.checked = false);
+      const first = q('input[name="' + name + '"]');
+      if(first) first.checked = true;
+    });
+    q('#patient').value = '';
+    q('#baseline').value = '';
+    setToday();
+    calculate();
+  }
+
+  qa('input[type="radio"]').forEach(el => el.addEventListener('change', calculate));
+  q('#baseline').addEventListener('input', calculate);
+  q('#printBtn').addEventListener('click', () => window.print());
+  q('#resetBtn').addEventListener('click', reset);
+
+  setToday();
+  calculate();
+})();
+</script>
+</body>
+</html>

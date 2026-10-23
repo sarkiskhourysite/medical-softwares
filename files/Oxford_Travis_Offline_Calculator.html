@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oxford / Travis Criteria Offline Calculator</title>
+<style>
+:root{
+  --navy:#123f6b; --blue:#2d7db3; --teal:#168d92; --green:#257a55;
+  --red:#b92f3a; --gold:#9a6a00; --light:#eef7fc; --border:#cfe2ef;
+  --text:#183247; --muted:#607582; --shadow:0 8px 24px rgba(27,79,114,.09);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#f4f8fb;color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;line-height:1.45
+}
+.page{max-width:1000px;margin:28px auto;padding:0 16px 40px}
+.header,.panel,.result,.actions,.refs{
+  background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)
+}
+.header{
+  padding:26px;background:linear-gradient(135deg,#fff,#eef9ff);margin-bottom:18px
+}
+h1{margin:0 0 6px;color:var(--navy);font-size:clamp(27px,4vw,42px);line-height:1.1}
+.subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:10px}
+.intro{margin:0;color:var(--muted);max-width:850px}
+.patient{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+label.small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:5px}
+input[type=text],input[type=date],input[type=number]{
+  width:100%;border:1px solid var(--border);border-radius:9px;
+  padding:11px 12px;font-size:16px;background:#fff
+}
+.context{
+  margin-top:15px;padding:12px 14px;border-radius:12px;
+  background:#fff8e7;border:1px solid #efd698;color:#6f5316;font-size:14px
+}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{padding:20px}
+.panel h2{margin:0 0 14px;color:var(--navy);font-size:20px}
+.big-input{position:relative}
+.big-input input{font-size:28px;font-weight:800;color:var(--navy);padding:16px 78px 16px 16px}
+.unit{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:14px;font-weight:700;pointer-events:none
+}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+.rule-box{
+  margin-top:16px;padding:16px;border:1px solid var(--border);
+  border-radius:14px;background:#fff
+}
+.rule-title{font-weight:800;color:var(--navy);margin-bottom:8px}
+.rules{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.rule{
+  padding:14px;border-radius:12px;background:#f7fafc;border:1px solid #e1edf4;
+  text-align:center
+}
+.rule strong{display:block;color:var(--navy);font-size:19px}
+.or{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;background:#eaf2f7;color:var(--navy);font-weight:800
+}
+.result-wrap{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:18px}
+.result{padding:22px;border-width:2px}
+.eyebrow{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.status{font-size:34px;font-weight:800;margin:5px 0 8px;color:var(--green)}
+.explain{margin:0;color:var(--muted)}
+.detail-list{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.detail-list li{
+  padding:10px 12px;border-radius:10px;background:#f7fafc;border:1px solid #e2edf3
+}
+.detail-list li.met{background:#fff0f1;border-color:#efc7cb;color:#7e1e26;font-weight:700}
+.actions{
+  padding:20px;display:flex;flex-direction:column;justify-content:center;gap:10px
+}
+button{
+  border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer
+}
+.print{background:var(--navy);color:#fff}
+.reset{background:#eaf2f7;color:var(--navy)}
+.warning{
+  margin-top:16px;padding:14px 16px;border-radius:13px;
+  border:1px solid #efc7cb;background:#fff0f1;color:#7e1e26
+}
+.info{
+  margin-top:16px;padding:14px 16px;border-radius:13px;
+  border:1px solid #cfe2ef;background:#eef7fc;color:#38566c
+}
+.refs{margin-top:16px;padding:17px;color:var(--muted);font-size:14px}
+.refs strong{color:var(--navy)}
+@media(max-width:760px){
+  .grid,.result-wrap,.patient{grid-template-columns:1fr}
+  .rules{grid-template-columns:1fr}
+  .or{margin:auto}
+}
+@media print{
+  body{background:#fff}.page{max-width:none;margin:0;padding:0}
+  .header,.panel,.result,.actions,.refs{box-shadow:none}
+  .actions{display:none}.panel{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<section class="header">
+  <h1>Oxford / Travis Criteria</h1>
+  <div class="subtitle">Day-3 predictor of IV corticosteroid failure in acute severe ulcerative colitis</div>
+  <p class="intro">
+    Enter the stool frequency and C-reactive protein (CRP) measured on day 3 of intravenous corticosteroid therapy.
+    The calculator checks whether the classic Oxford/Travis criteria are positive.
+  </p>
+
+  <div class="context">
+    <strong>Use only in the intended context:</strong> patients with <strong>acute severe ulcerative colitis (ASUC)</strong>
+    being reassessed on <strong>day 3 of IV corticosteroids</strong>.
+  </div>
+
+  <div class="patient">
+    <div>
+      <label class="small" for="patient">Patient / Identifier (optional)</label>
+      <input id="patient" type="text" placeholder="Enter name or identifier">
+    </div>
+    <div>
+      <label class="small" for="date">Assessment date</label>
+      <input id="date" type="date">
+    </div>
+  </div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Day-3 stool frequency</h2>
+    <div class="big-input">
+      <input id="stools" type="number" min="0" max="50" step="1" value="0" aria-label="Day 3 stools per day">
+      <span class="unit">/ day</span>
+    </div>
+    <div class="hint">Count total stools over 24 hours on day 3.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Day-3 CRP</h2>
+    <div class="big-input">
+      <input id="crp" type="number" min="0" max="500" step="0.1" value="0" aria-label="Day 3 CRP">
+      <span class="unit">mg/L</span>
+    </div>
+    <div class="hint">Enter C-reactive protein measured on day 3.</div>
+  </div>
+</section>
+
+<section class="rule-box">
+  <div class="rule-title">Oxford / Travis criteria are positive if either condition is met:</div>
+  <div class="rules">
+    <div class="rule">
+      <strong>&gt;8 stools/day</strong>
+      regardless of CRP
+    </div>
+    <div class="or">OR</div>
+    <div class="rule">
+      <strong>3–8 stools/day</strong>
+      AND CRP &gt;45 mg/L
+    </div>
+  </div>
+</section>
+
+<section class="result-wrap">
+  <div class="result" id="resultBox">
+    <div class="eyebrow">Oxford / Travis result</div>
+    <div class="status" id="status">Criteria not met</div>
+    <p class="explain" id="explanation">
+      Current values do not satisfy the classic day-3 Oxford/Travis criteria.
+    </p>
+
+    <ul class="detail-list">
+      <li id="ruleA">Criterion A: &gt;8 stools/day — not met</li>
+      <li id="ruleB">Criterion B: 3–8 stools/day + CRP &gt;45 mg/L — not met</li>
+    </ul>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="print" id="printBtn">Print / Save as PDF</button>
+    <button type="button" class="reset" id="resetBtn">Reset calculator</button>
+  </div>
+</section>
+
+<div class="warning" id="positiveBox" style="display:none">
+  <strong>High risk of IV corticosteroid non-response.</strong>
+  In the original Oxford study, a positive day-3 result was associated with a high risk of colectomy during that admission.
+  Contemporary outcomes may differ because rescue therapies and care pathways have evolved.
+</div>
+
+<div class="info">
+  <strong>Clinical use:</strong> A positive result is a prognostic warning, not a stand-alone treatment order.
+  It should prompt timely multidisciplinary reassessment and planning for rescue therapy and colorectal surgical input
+  in the context of the patient's overall condition.
+</div>
+
+<section class="refs">
+  <strong>Medical basis</strong><br>
+  Classic Oxford/Travis criteria on day 3 of IV corticosteroids:
+  <strong>&gt;8 stools/day</strong>, or <strong>3–8 stools/day plus CRP &gt;45 mg/L</strong>.<br><br>
+  <strong>Educational use only.</strong> This calculator does not replace specialist assessment,
+  clinical judgment, endoscopy, laboratory interpretation, or surgical consultation.
+</section>
+
+</main>
+
+<script>
+(function(){
+  const stools = document.getElementById('stools');
+  const crp = document.getElementById('crp');
+  const status = document.getElementById('status');
+  const explanation = document.getElementById('explanation');
+  const ruleA = document.getElementById('ruleA');
+  const ruleB = document.getElementById('ruleB');
+  const positiveBox = document.getElementById('positiveBox');
+  const date = document.getElementById('date');
+  const patient = document.getElementById('patient');
+
+  function valueOf(el, max){
+    const n = Number(el.value);
+    if(!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(max, n));
+  }
+
+  function calculate(){
+    const s = Math.round(valueOf(stools, 50));
+    const c = valueOf(crp, 500);
+
+    const a = s > 8;
+    const b = s >= 3 && s <= 8 && c > 45;
+    const positive = a || b;
+
+    ruleA.textContent = 'Criterion A: >8 stools/day — ' + (a ? 'MET' : 'not met');
+    ruleB.textContent = 'Criterion B: 3–8 stools/day + CRP >45 mg/L — ' + (b ? 'MET' : 'not met');
+    ruleA.classList.toggle('met', a);
+    ruleB.classList.toggle('met', b);
+
+    if(positive){
+      status.textContent = 'Positive Oxford / Travis criteria';
+      status.style.color = '#b92f3a';
+
+      if(a && b){
+        explanation.textContent = 'The day-3 assessment satisfies both displayed criteria.';
+      }else if(a){
+        explanation.textContent = 'Stool frequency is >8/day, which is sufficient for a positive result regardless of CRP.';
+      }else{
+        explanation.textContent = 'Stool frequency is 3–8/day and CRP is >45 mg/L.';
+      }
+      positiveBox.style.display = 'block';
+    }else{
+      status.textContent = 'Criteria not met';
+      status.style.color = '#257a55';
+
+      if(s < 3){
+        explanation.textContent = 'Stool frequency is below the range used in the Oxford/Travis positive criteria.';
+      }else if(s <= 8){
+        explanation.textContent = 'Stool frequency is 3–8/day, but CRP is not >45 mg/L.';
+      }else{
+        explanation.textContent = 'Current values do not satisfy the classic day-3 Oxford/Travis criteria.';
+      }
+      positiveBox.style.display = 'none';
+    }
+  }
+
+  function setToday(){
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    date.value = local;
+  }
+
+  function reset(){
+    patient.value = '';
+    stools.value = '0';
+    crp.value = '0';
+    setToday();
+    calculate();
+  }
+
+  stools.addEventListener('input', calculate);
+  crp.addEventListener('input', calculate);
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  document.getElementById('resetBtn').addEventListener('click', reset);
+
+  setToday();
+  calculate();
+})();
+</script>
+</body>
+</html>

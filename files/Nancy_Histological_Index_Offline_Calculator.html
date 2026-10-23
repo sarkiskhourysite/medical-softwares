@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nancy Histological Index Offline Calculator</title>
+<style>
+:root{
+  --navy:#123f6b; --blue:#2d7db3; --teal:#168d92; --green:#257a55;
+  --yellow:#b68000; --orange:#d56d22; --red:#b92f3a; --light:#eef7fc;
+  --border:#cfe2ef; --text:#183247; --muted:#607582;
+  --shadow:0 8px 24px rgba(27,79,114,.09);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:#f4f8fb;color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;line-height:1.45
+}
+.page{max-width:1050px;margin:28px auto;padding:0 16px 40px}
+.header,.card,.result,.actions,.refs{
+  background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)
+}
+.header{
+  padding:26px;background:linear-gradient(135deg,#fff,#eef9ff);margin-bottom:18px
+}
+h1{margin:0 0 6px;color:var(--navy);font-size:clamp(27px,4vw,42px);line-height:1.1}
+.subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:10px}
+.intro{margin:0;color:var(--muted);max-width:900px}
+.patient{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+label.small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:5px}
+input[type=text],input[type=date]{
+  width:100%;border:1px solid var(--border);border-radius:9px;
+  padding:10px 12px;font-size:16px;background:#fff
+}
+.note-top{
+  margin-top:15px;padding:12px 14px;border-radius:12px;background:#fff8e7;
+  border:1px solid #efd698;color:#6f5316;font-size:14px
+}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{overflow:hidden}
+.card h2{
+  margin:0;padding:14px 16px;font-size:19px;color:var(--navy);
+  background:var(--light);border-bottom:1px solid var(--border)
+}
+.content{padding:12px 16px 18px}
+.option{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:11px 10px;border-radius:10px;cursor:pointer;margin:3px 0
+}
+.option:hover{background:#f5fafc}
+.option input{
+  margin-top:3px;transform:scale(1.15);accent-color:var(--blue);flex:0 0 auto
+}
+.choice{display:flex;align-items:flex-start;gap:8px;flex:1}
+.label-main{font-weight:700}
+.descriptor{
+  display:block;font-size:12.5px;color:var(--muted);font-weight:400;
+  margin-top:3px;line-height:1.38
+}
+.result-wrap{
+  display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:18px
+}
+.result{padding:22px;border-width:2px}
+.eyebrow{
+  font-size:13px;font-weight:800;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em
+}
+.grade-line{display:flex;align-items:baseline;gap:10px;margin:6px 0}
+#grade{font-size:52px;line-height:1;font-weight:800;color:var(--navy)}
+.out-of{font-size:21px;color:var(--muted);font-weight:700}
+.status{font-size:20px;font-weight:800;margin-top:10px}
+.detail{margin:4px 0 0;color:var(--muted)}
+.actions{
+  padding:20px;display:flex;flex-direction:column;justify-content:center;gap:10px
+}
+button{
+  border:0;border-radius:10px;padding:12px 14px;font-size:15px;
+  font-weight:700;cursor:pointer
+}
+.print{background:var(--navy);color:#fff}
+.reset{background:#eaf2f7;color:var(--navy)}
+.path{
+  margin-top:16px;background:#fff;border:1px solid var(--border);
+  border-radius:16px;padding:18px;box-shadow:var(--shadow)
+}
+.path h3{margin:0 0 12px;color:var(--navy)}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.step{
+  padding:11px 12px;border:1px solid #e1edf4;background:#f7fafc;
+  border-radius:10px;font-size:13px;color:var(--muted)
+}
+.step strong{display:block;color:var(--navy);margin-bottom:4px}
+.step.active{background:#eef7fc;border-color:#9dc8e1;color:var(--text)}
+.scale{
+  margin-top:16px;background:#fff;border:1px solid var(--border);
+  border-radius:16px;padding:18px;box-shadow:var(--shadow)
+}
+.scale h3{margin:0 0 12px;color:var(--navy)}
+.scale-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.band{padding:12px;border-radius:10px;border:1px solid #e1edf4;text-align:center;background:#f8fafb}
+.band strong{display:block;font-size:18px;color:var(--navy);margin-bottom:4px}
+.band span{font-size:12.5px;color:var(--muted)}
+.note{
+  margin-top:16px;padding:14px 16px;border-radius:13px;
+  border:1px solid #cfe2ef;background:#eef7fc;color:#38566c
+}
+.refs{margin-top:16px;padding:17px;color:var(--muted);font-size:14px}
+.refs strong{color:var(--navy)}
+@media(max-width:850px){
+  .grid,.result-wrap,.patient{grid-template-columns:1fr}
+  .steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scale-grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){.steps{grid-template-columns:1fr}}
+@media print{
+  body{background:#fff}.page{max-width:none;margin:0;padding:0}
+  .header,.card,.result,.actions,.refs,.path,.scale{box-shadow:none}
+  .actions{display:none}.card{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+<section class="header">
+  <h1>Nancy Histological Index (NHI)</h1>
+  <div class="subtitle">Offline histological activity classifier for ulcerative colitis</div>
+  <p class="intro">
+    Select the biopsy findings below. The Nancy Histological Index is a stepwise classification from
+    Grade 0 to Grade 4 based on ulceration, acute inflammatory infiltrate, and chronic inflammatory infiltrate.
+  </p>
+
+  <div class="note-top">
+    <strong>Important:</strong> the NHI is <strong>not additive</strong>. The final grade is determined by the
+    most severe histological feature present.
+  </div>
+
+  <div class="patient">
+    <div>
+      <label class="small" for="patient">Patient / Specimen identifier (optional)</label>
+      <input id="patient" type="text" placeholder="Enter patient or biopsy identifier">
+    </div>
+    <div>
+      <label class="small" for="date">Assessment date</label>
+      <input id="date" type="date">
+    </div>
+  </div>
+</section>
+
+<section class="grid">
+
+  <div class="card">
+    <h2>1. Ulceration</h2>
+    <div class="content">
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="ulceration" value="0" checked>
+          <span>
+            <span class="label-main">Absent</span>
+            <span class="descriptor">No histologic ulceration identified.</span>
+          </span>
+        </span>
+      </label>
+
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="ulceration" value="1">
+          <span>
+            <span class="label-main">Present</span>
+            <span class="descriptor">
+              Loss of colonic crypts replaced by immature granulation tissue and/or fibrinopurulent exudate.
+              Epithelial stripping alone is not sufficient.
+            </span>
+          </span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Acute inflammatory infiltrate</h2>
+    <div class="content">
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="acute" value="0" checked>
+          <span>
+            <span class="label-main">None</span>
+            <span class="descriptor">No neutrophilic infiltrate in lamina propria or epithelium.</span>
+          </span>
+        </span>
+      </label>
+
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="acute" value="1">
+          <span>
+            <span class="label-main">Mild</span>
+            <span class="descriptor">
+              Few or rare neutrophils in the lamina propria or epithelium; difficult to see.
+            </span>
+          </span>
+        </span>
+      </label>
+
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="acute" value="2">
+          <span>
+            <span class="label-main">Moderate to severe</span>
+            <span class="descriptor">
+              Multiple clusters of neutrophils in lamina propria and/or epithelium; easily apparent.
+            </span>
+          </span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. Chronic inflammatory infiltrate</h2>
+    <div class="content">
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="chronic" value="0" checked>
+          <span>
+            <span class="label-main">None or mild increase</span>
+            <span class="descriptor">
+              No increase or only a mild increase in chronic inflammatory cells.
+            </span>
+          </span>
+        </span>
+      </label>
+
+      <label class="option">
+        <span class="choice">
+          <input type="radio" name="chronic" value="1">
+          <span>
+            <span class="label-main">Moderate to severe increase</span>
+            <span class="descriptor">
+              Easily apparent increase in chronic inflammatory cells in the lamina propria.
+            </span>
+          </span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+</section>
+
+<section class="result-wrap">
+  <div class="result">
+    <div class="eyebrow">Nancy Histological Index</div>
+    <div class="grade-line">
+      <span id="grade">Grade 0</span>
+      <span class="out-of">/ 4</span>
+    </div>
+    <div class="status" id="status">No significant histological disease activity</div>
+    <p class="detail" id="detail">No acute inflammatory activity and no or only mild chronic inflammatory infiltrate.</p>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="print" id="printBtn">Print / Save as PDF</button>
+    <button type="button" class="reset" id="resetBtn">Reset calculator</button>
+  </div>
+</section>
+
+<section class="path">
+  <h3>How the grade was determined</h3>
+  <div class="steps">
+    <div class="step" id="stepUlcer">
+      <strong>Step 1</strong>
+      Ulceration?
+    </div>
+    <div class="step" id="stepAcuteSevere">
+      <strong>Step 2</strong>
+      Moderate–severe acute infiltrate?
+    </div>
+    <div class="step" id="stepAcuteMild">
+      <strong>Step 3</strong>
+      Mild acute infiltrate?
+    </div>
+    <div class="step" id="stepChronic">
+      <strong>Step 4</strong>
+      Moderate–severe chronic infiltrate?
+    </div>
+  </div>
+</section>
+
+<section class="scale">
+  <h3>NHI grade interpretation</h3>
+  <div class="scale-grid">
+    <div class="band"><strong>Grade 0</strong><span>No significant histological disease activity</span></div>
+    <div class="band"><strong>Grade 1</strong><span>Chronic inflammatory infiltrate without acute activity</span></div>
+    <div class="band"><strong>Grade 2</strong><span>Mildly active disease</span></div>
+    <div class="band"><strong>Grade 3</strong><span>Moderately active disease</span></div>
+    <div class="band"><strong>Grade 4</strong><span>Severely active disease / ulceration</span></div>
+  </div>
+</section>
+
+<div class="note">
+  <strong>Histologic remission:</strong> NHI Grade 0 represents absence of significant histological disease activity.
+  Grades 2–4 indicate active neutrophilic inflammation, while Grade 1 represents chronic inflammatory infiltrate
+  without acute neutrophilic activity.
+</div>
+
+<section class="refs">
+  <strong>Medical references</strong><br>
+  Marchal-Bressenot A, et al. Development and validation of the Nancy histological index for UC.
+  <em>Gut</em>. 2017;66:43–49.<br>
+  Marchal-Bressenot A, et al. A practical guide to assess the Nancy histological index for UC.
+  <em>Gut</em>. 2016;65:1919–1920.<br><br>
+  <strong>Educational use only.</strong> This tool is intended to assist standardized scoring by trained clinicians/pathologists
+  and does not replace formal histopathologic interpretation.
+</section>
+
+</main>
+
+<script>
+(function(){
+  const q = s => document.querySelector(s);
+  const qa = s => document.querySelectorAll(s);
+
+  function val(name){
+    const el = q('input[name="' + name + '"]:checked');
+    return el ? Number(el.value) : 0;
+  }
+
+  function clearSteps(){
+    ['stepUlcer','stepAcuteSevere','stepAcuteMild','stepChronic'].forEach(id => {
+      q('#' + id).classList.remove('active');
+    });
+  }
+
+  function calculate(){
+    const ulcer = val('ulceration');
+    const acute = val('acute');
+    const chronic = val('chronic');
+
+    let grade = 0;
+    let status = 'No significant histological disease activity';
+    let detail = 'No acute inflammatory activity and no or only mild chronic inflammatory infiltrate.';
+    let color = '#257a55';
+
+    clearSteps();
+
+    if(ulcer === 1){
+      grade = 4;
+      status = 'Severely active disease';
+      detail = 'Ulceration is present; this determines NHI Grade 4 regardless of the lower-order findings.';
+      color = '#b92f3a';
+      q('#stepUlcer').classList.add('active');
+    } else if(acute === 2){
+      grade = 3;
+      status = 'Moderately active disease';
+      detail = 'No ulceration, but moderate-to-severe acute neutrophilic inflammatory infiltrate is present.';
+      color = '#d56d22';
+      q('#stepUlcer').classList.add('active');
+      q('#stepAcuteSevere').classList.add('active');
+    } else if(acute === 1){
+      grade = 2;
+      status = 'Mildly active disease';
+      detail = 'No ulceration; mild acute neutrophilic inflammatory infiltrate is present.';
+      color = '#b68000';
+      q('#stepUlcer').classList.add('active');
+      q('#stepAcuteSevere').classList.add('active');
+      q('#stepAcuteMild').classList.add('active');
+    } else if(chronic === 1){
+      grade = 1;
+      status = 'Chronic inflammatory infiltrate without acute activity';
+      detail = 'No ulceration or acute neutrophilic activity; moderate-to-severe chronic inflammatory infiltrate is present.';
+      color = '#2d7db3';
+      q('#stepUlcer').classList.add('active');
+      q('#stepAcuteSevere').classList.add('active');
+      q('#stepAcuteMild').classList.add('active');
+      q('#stepChronic').classList.add('active');
+    } else {
+      grade = 0;
+      status = 'No significant histological disease activity';
+      detail = 'No acute inflammatory activity and no or only mild chronic inflammatory infiltrate.';
+      color = '#257a55';
+      q('#stepUlcer').classList.add('active');
+      q('#stepAcuteSevere').classList.add('active');
+      q('#stepAcuteMild').classList.add('active');
+      q('#stepChronic').classList.add('active');
+    }
+
+    q('#grade').textContent = 'Grade ' + grade;
+    q('#grade').style.color = color;
+    q('#status').textContent = status;
+    q('#status').style.color = color;
+    q('#detail').textContent = detail;
+  }
+
+  function setToday(){
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    q('#date').value = local;
+  }
+
+  function reset(){
+    ['ulceration','acute','chronic'].forEach(name => {
+      qa('input[name="' + name + '"]').forEach(el => el.checked = false);
+      const first = q('input[name="' + name + '"]');
+      if(first) first.checked = true;
+    });
+    q('#patient').value = '';
+    setToday();
+    calculate();
+  }
+
+  qa('input[type="radio"]').forEach(el => el.addEventListener('change', calculate));
+  q('#printBtn').addEventListener('click', () => window.print());
+  q('#resetBtn').addEventListener('click', reset);
+
+  setToday();
+  calculate();
+})();
+</script>
+</body>
+</html>

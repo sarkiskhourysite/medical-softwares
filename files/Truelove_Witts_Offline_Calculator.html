@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Truelove and Witts Criteria Calculator</title>
+<style>
+:root{
+  --navy:#123f6b; --blue:#2d7db3; --teal:#168d92; --green:#257a55;
+  --yellow:#9a6a00; --red:#b92f3a; --light:#eef7fc; --border:#cfe2ef;
+  --text:#183247; --muted:#607582; --shadow:0 8px 24px rgba(27,79,114,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f4f8fb;color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+.page{max-width:1100px;margin:28px auto;padding:0 16px 40px}
+.header,.panel,.result,.actions,.refs{
+  background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow)
+}
+.header{padding:26px;background:linear-gradient(135deg,#fff,#eef9ff);margin-bottom:18px}
+h1{margin:0 0 6px;color:var(--navy);font-size:clamp(27px,4vw,42px);line-height:1.1}
+.subtitle{color:var(--teal);font-size:18px;font-weight:700;margin-bottom:10px}
+.intro{margin:0;color:var(--muted);max-width:900px}
+.patient{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:16px}
+label.small{display:block;font-size:13px;color:var(--muted);font-weight:700;margin-bottom:5px}
+input[type=text],input[type=date],input[type=number]{
+  width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;font-size:16px;background:#fff
+}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{padding:18px}
+.panel h2{margin:0 0 14px;color:var(--navy);font-size:20px}
+.field{margin:0 0 15px}
+.field-row{display:grid;grid-template-columns:1fr 140px;gap:12px;align-items:end}
+.hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+.unit-wrap{position:relative}
+.unit-wrap input{padding-right:54px}
+.unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;font-weight:700;pointer-events:none}
+.option-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.option-row label{
+  display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff
+}
+.option-row input{accent-color:var(--blue)}
+.result-wrap{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:18px}
+.result{padding:22px;border-width:2px}
+.result .eyebrow{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.classification{font-size:34px;font-weight:800;margin:5px 0 8px;color:var(--navy)}
+.explain{margin:0;color:var(--muted)}
+.criteria{margin-top:16px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.crit{padding:10px;border-radius:10px;border:1px solid #e2edf3;background:#f7fafc}
+.crit .name{font-size:12px;color:var(--muted)}
+.crit .state{font-weight:800;margin-top:3px}
+.crit.pos{background:#fff0f1;border-color:#efc7cb}
+.crit.pos .state{color:var(--red)}
+.crit.neg .state{color:var(--green)}
+.actions{padding:20px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+button{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer}
+.print{background:var(--navy);color:#fff}
+.reset{background:#eaf2f7;color:var(--navy)}
+.warning{margin-top:16px;padding:14px 16px;border-radius:13px;border:1px solid #efc7cb;background:#fff0f1;color:#7e1e26}
+.info{margin-top:16px;padding:14px 16px;border-radius:13px;border:1px solid #cfe2ef;background:#eef7fc;color:#38566c}
+.refs{margin-top:16px;padding:17px;color:var(--muted);font-size:14px}
+.refs strong{color:var(--navy)}
+.invalid{color:var(--red);font-size:13px;font-weight:700;margin-top:8px;display:none}
+@media(max-width:800px){
+  .grid,.result-wrap,.patient{grid-template-columns:1fr}
+  .criteria{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .field-row,.criteria{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}.page{max-width:none;margin:0;padding:0}
+  .header,.panel,.result,.actions,.refs{box-shadow:none}
+  .actions{display:none}.panel{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="header">
+    <h1>Truelove and Witts Criteria</h1>
+    <div class="subtitle">Offline ulcerative colitis severity classifier</div>
+    <p class="intro">
+      Enter the clinical findings below. The calculator classifies the presentation as mild, moderate, or severe
+      and separately checks the classic acute severe ulcerative colitis (ASUC) rule.
+    </p>
+
+    <div class="patient">
+      <div>
+        <label class="small" for="patient">Patient / Identifier (optional)</label>
+        <input id="patient" type="text" placeholder="Enter name or identifier">
+      </div>
+      <div>
+        <label class="small" for="date">Assessment date</label>
+        <input id="date" type="date">
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Stool frequency</h2>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="stools">Total stools per day</label>
+            <div class="hint">Used for mild/moderate classification.</div>
+          </div>
+          <input id="stools" type="number" min="0" max="50" step="1" value="0">
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="bloodyStools">Bloody stools per day</label>
+            <div class="hint">ASUC requires ≥6 bloody stools/day plus ≥1 systemic toxicity criterion.</div>
+          </div>
+          <input id="bloodyStools" type="number" min="0" max="50" step="1" value="0">
+        </div>
+        <div id="stoolError" class="invalid">Bloody stools cannot exceed total stools/day.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Systemic features</h2>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="temp">Temperature</label>
+            <div class="hint">Classic severe threshold: &gt;37.8°C.</div>
+          </div>
+          <div class="unit-wrap"><input id="temp" type="number" min="30" max="45" step="0.1" value="37.0"><span class="unit">°C</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="pulse">Pulse</label>
+            <div class="hint">Classic severe threshold: &gt;90/min.</div>
+          </div>
+          <div class="unit-wrap"><input id="pulse" type="number" min="20" max="250" step="1" value="80"><span class="unit">/min</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="hb">Hemoglobin</label>
+            <div class="hint">Classic severe threshold: &lt;10.5 g/dL.</div>
+          </div>
+          <div class="unit-wrap"><input id="hb" type="number" min="2" max="25" step="0.1" value="13"><span class="unit">g/dL</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label class="small" for="esr">ESR</label>
+            <div class="hint">Classic severe threshold: &gt;30 mm/h.</div>
+          </div>
+          <div class="unit-wrap"><input id="esr" type="number" min="0" max="200" step="1" value="10"><span class="unit">mm/h</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <h2>Optional modified criterion</h2>
+    <div class="field-row">
+      <div>
+        <label class="small" for="crp">CRP (optional)</label>
+        <div class="hint">
+          Modern practice may substitute CRP &gt;30 mg/L for an elevated ESR when ESR is unavailable.
+          Leave blank if not being used.
+        </div>
+      </div>
+      <div class="unit-wrap"><input id="crp" type="number" min="0" max="500" step="0.1" placeholder="Optional"><span class="unit">mg/L</span></div>
+    </div>
+  </section>
+
+  <section class="result-wrap">
+    <div class="result" id="resultBox">
+      <div class="eyebrow">Classification</div>
+      <div class="classification" id="classification">Mild</div>
+      <p class="explain" id="explanation">Findings currently fit the mild category.</p>
+
+      <div class="criteria">
+        <div class="crit neg" id="cTemp"><div class="name">Temperature &gt;37.8°C</div><div class="state">Not met</div></div>
+        <div class="crit neg" id="cPulse"><div class="name">Pulse &gt;90/min</div><div class="state">Not met</div></div>
+        <div class="crit neg" id="cHb"><div class="name">Hemoglobin &lt;10.5</div><div class="state">Not met</div></div>
+        <div class="crit neg" id="cEsr"><div class="name">ESR &gt;30 mm/h</div><div class="state">Not met</div></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="print" id="printBtn">Print / Save as PDF</button>
+      <button type="button" class="reset" id="resetBtn">Reset calculator</button>
+    </div>
+  </section>
+
+  <div class="warning" id="asucBox" style="display:none">
+    <strong>Acute severe UC criteria met:</strong>
+    ≥6 bloody stools/day plus at least one systemic toxicity criterion. This pattern generally warrants urgent hospital-based assessment and management.
+  </div>
+
+  <div class="info">
+    <strong>How classification is applied:</strong> Severe disease is identified by the classic ASUC rule above.
+    Mild disease is approximated using &lt;4 stools/day with no systemic disturbance and low inflammatory activity.
+    Presentations between mild and severe are classified as moderate. Clinical context remains essential.
+  </div>
+
+  <section class="refs">
+    <strong>Medical basis</strong><br>
+    Classic Truelove and Witts severe disease: ≥6 bloody stools/day plus at least one of pulse &gt;90/min,
+    temperature &gt;37.8°C, hemoglobin &lt;10.5 g/dL, or ESR &gt;30 mm/h. Modern guidance may use CRP &gt;30 mg/L
+    as a substitute for ESR in modified criteria.<br><br>
+    <strong>Educational use only.</strong> This calculator does not replace gastroenterology assessment,
+    laboratory interpretation, endoscopy, or hospital evaluation.
+  </section>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ids = ['stools','bloodyStools','temp','pulse','hb','esr','crp'];
+
+  function num(id){
+    const raw = $(id).value.trim();
+    if(raw === '') return null;
+    const v = Number(raw);
+    return Number.isFinite(v) ? v : null;
+  }
+
+  function setCriterion(id, positive){
+    const box = $(id);
+    box.classList.toggle('pos', positive);
+    box.classList.toggle('neg', !positive);
+    box.querySelector('.state').textContent = positive ? 'Met' : 'Not met';
+  }
+
+  function calculate(){
+    let stools = num('stools');
+    let bloody = num('bloodyStools');
+    let temp = num('temp');
+    let pulse = num('pulse');
+    let hb = num('hb');
+    let esr = num('esr');
+    let crp = num('crp');
+
+    stools = stools === null ? 0 : Math.max(0, Math.min(50, Math.round(stools)));
+    bloody = bloody === null ? 0 : Math.max(0, Math.min(50, Math.round(bloody)));
+
+    const invalidStools = bloody > stools;
+    $('stoolError').style.display = invalidStools ? 'block' : 'none';
+
+    const tPos = temp !== null && temp > 37.8;
+    const pPos = pulse !== null && pulse > 90;
+    const hPos = hb !== null && hb < 10.5;
+    const ePos = esr !== null && esr > 30;
+    const cPos = crp !== null && crp > 30;
+
+    setCriterion('cTemp', tPos);
+    setCriterion('cPulse', pPos);
+    setCriterion('cHb', hPos);
+    setCriterion('cEsr', ePos);
+
+    const classicToxicity = tPos || pPos || hPos || ePos;
+    const modifiedToxicity = classicToxicity || cPos;
+    const classicSevere = !invalidStools && bloody >= 6 && classicToxicity;
+    const modifiedSevere = !invalidStools && bloody >= 6 && modifiedToxicity;
+
+    let cls = 'Moderate';
+    let explanation = 'Findings fall between the mild and severe categories.';
+
+    const mild =
+      !invalidStools &&
+      stools < 4 &&
+      (temp === null || temp < 37.5) &&
+      (pulse === null || pulse < 90) &&
+      (hb === null || hb > 11.5) &&
+      (esr === null || esr < 20);
+
+    if(classicSevere){
+      cls = 'Severe / Acute Severe UC';
+      explanation = 'Classic Truelove and Witts severe criteria are met: ≥6 bloody stools/day plus at least one systemic toxicity criterion.';
+    } else if(modifiedSevere && cPos){
+      cls = 'Severe by modified criteria';
+      explanation = '≥6 bloody stools/day are present and CRP >30 mg/L supplies the systemic inflammatory criterion in a modified Truelove and Witts approach.';
+    } else if(mild){
+      cls = 'Mild';
+      explanation = 'Findings fit the mild end of the Truelove and Witts classification.';
+    }
+
+    const classEl = $('classification');
+    classEl.textContent = invalidStools ? 'Check input' : cls;
+    classEl.style.color =
+      invalidStools ? '#b92f3a' :
+      cls.startsWith('Severe') ? '#b92f3a' :
+      cls === 'Moderate' ? '#9a6a00' : '#257a55';
+
+    $('explanation').textContent = invalidStools
+      ? 'Bloody stools/day cannot be greater than total stools/day.'
+      : explanation;
+
+    $('asucBox').style.display = (classicSevere || modifiedSevere) ? 'block' : 'none';
+    if(modifiedSevere && !classicSevere){
+      $('asucBox').innerHTML =
+        '<strong>Modified acute severe UC criteria met:</strong> ≥6 bloody stools/day plus CRP >30 mg/L. CRP is being used here as a modern substitute for ESR.';
+    } else {
+      $('asucBox').innerHTML =
+        '<strong>Acute severe UC criteria met:</strong> ≥6 bloody stools/day plus at least one systemic toxicity criterion. This pattern generally warrants urgent hospital-based assessment and management.';
+    }
+  }
+
+  function setToday(){
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    $('date').value = local;
+  }
+
+  function reset(){
+    $('patient').value = '';
+    $('stools').value = 0;
+    $('bloodyStools').value = 0;
+    $('temp').value = 37.0;
+    $('pulse').value = 80;
+    $('hb').value = 13;
+    $('esr').value = 10;
+    $('crp').value = '';
+    setToday();
+    calculate();
+  }
+
+  ids.forEach(id => $(id).addEventListener('input', calculate));
+  $('printBtn').addEventListener('click', () => window.print());
+  $('resetBtn').addEventListener('click', reset);
+
+  setToday();
+  calculate();
+})();
+</script>
+</body>
+</html>
